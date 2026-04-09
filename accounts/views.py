@@ -7,8 +7,6 @@ from .forms import CustomUserCreationForm, UserProfileForm
 
 from django.contrib.auth import get_user_model
 User = get_user_model()
-if not User.objects.filter(username='admin').exists():
-    User.objects.create_superuser('admin', 'admin@gmail.com', 'admin123')
     
 def register_view(request):
     if request.user.is_authenticated:
@@ -62,6 +60,12 @@ def logout_view(request):
     return redirect('login')
 
 def home_view(request):
+    try: 
+        if not User.objects.filter(username='admin').exists():
+        User.objects.create_superuser('admin', 'admin@gmail.com', 'admin123')
+    except:
+        pass
+    
     if request.user.is_authenticated:
         if request.user.role == 'Admin':
             return redirect('admin_dashboard')
