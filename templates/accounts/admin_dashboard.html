@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+{% block title %} | Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="page-header animate-in">
+    <h2>Management Dashboard</h2>
+    <p>Overview of your parking system</p>
+</div>
+
+<!-- Stats Grid -->
+<div class="grid grid-auto animate-in animate-delay-1" style="margin-bottom:28px;">
+    <div class="card stat-card card-glow">
+        <div class="stat-value">{{ total_slots }}</div>
+        <div class="stat-label">Total Slots</div>
+    </div>
+    <div class="card stat-card card-glow">
+        <div class="stat-value text-green">{{ free_slots }}</div>
+        <div class="stat-label">Free</div>
+    </div>
+    <div class="card stat-card card-glow">
+        <div class="stat-value">{{ assigned_slots }}</div>
+        <div class="stat-label">Assigned</div>
+    </div>
+    <div class="card stat-card card-glow">
+        <div class="stat-value text-amber">{{ pending_requests }}</div>
+        <div class="stat-label">Pending</div>
+    </div>
+    <div class="card stat-card card-glow">
+        <div class="stat-value text-red">{{ open_complaints }}</div>
+        <div class="stat-label">Complaints</div>
+    </div>
+</div>
+
+<!-- Management Modules -->
+<div class="card animate-in animate-delay-2">
+    <h3 class="text-muted mb-4"
+        style="font-size:0.8rem; text-transform:uppercase; letter-spacing:0.5px; font-weight:700;">
+        Management Modules
+    </h3>
+    <div class="grid grid-2">
+        <a href="{% url 'admin_pending_requests' %}" class="action-link action-link-highlight">
+            📬 Pending Requests
+            {% if pending_requests %}
+            <span class="count-badge">{{ pending_requests }}</span>
+            {% endif %}
+        </a>
+        <a href="{% url 'admin_active_assignments' %}" class="action-link">📌 Active Assignments</a>
+        <a href="{% url 'admin_slot_list' %}" class="action-link">🅿️ Manage Slots</a>
+        <a href="{% url 'admin_complaint_list' %}"
+            class="action-link {% if open_complaints %}action-link-danger{% endif %}">
+            🚨 Manage Complaints
+            {% if open_complaints %}
+            <span class="count-badge count-badge-danger">{{ open_complaints }}</span>
+            {% endif %}
+        </a>
+    </div>
+</div>
+
+<!-- Available Free Slots Visual -->
+<div class="card animate-in animate-delay-3" style="margin-top:24px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
+        <h3 class="text-muted"
+            style="margin:0; font-size:0.8rem; text-transform:uppercase; letter-spacing:0.5px; font-weight:700;">
+            Parking Layout
+        </h3>
+        <span class="text-muted" style="font-size:0.8rem;">Level 1 - Zone C</span>
+    </div>
+
+    {% if all_slots %}
+    <div class="dubai-parking-grid" style="padding-top:0;">
+        {% for slot in all_slots %}
+        {% if slot.status == 'Free' %}
+        <div class="dubai-slot-card">
+            <span class="dubai-slot-number">{{ slot.slot_number }}</span>
+            <span class="dubai-slot-status">Available</span>
+        </div>
+        {% else %}
+        <div class="dubai-slot-car">
+            <!-- Top-down car SVG inspired by the reference -->
+            <svg viewBox="0 0 160 80" style="width:100%; max-width:110px; height:auto; display:block;">
+                <!-- Shadow -->
+                <rect x="8" y="12" width="144" height="56" rx="20" fill="rgba(0,0,0,0.1)" />
+                <!-- Car Body -->
+                <rect x="10" y="10" width="140" height="60" rx="20" fill="#C5EC37" stroke="#A8D020"
+                    stroke-width="1.5" />
+                <!-- Windshield & Rear Window block -->
+                <path d="M 40 14 Q 25 40 40 66 L 120 66 Q 135 40 120 14 Z" fill="#1C1C1E" />
+                <!-- Roof -->
+                <rect x="54" y="14" width="52" height="52" rx="4" fill="#C5EC37" />
+                <!-- Side Window splits (roof lines) -->
+                <line x1="54" y1="14" x2="106" y2="14" stroke="#1C1C1E" stroke-width="2.5" />
+                <line x1="54" y1="66" x2="106" y2="66" stroke="#1C1C1E" stroke-width="2.5" />
+                <!-- Headlights (Left side) -->
+                <path d="M 12 18 Q 18 18 18 28 L 12 28 Z" fill="#FDFFCC" />
+                <path d="M 12 62 Q 18 62 18 52 L 12 52 Z" fill="#FDFFCC" />
+                <!-- Taillights (Right side) -->
+                <path d="M 148 20 Q 142 20 142 28 L 148 30 Z" fill="#FF3B30" />
+                <path d="M 148 60 Q 142 60 142 52 L 148 50 Z" fill="#FF3B30" />
+                <!-- Side mirrors -->
+                <rect x="42" y="6" width="6" height="6" rx="2" fill="#C5EC37" stroke="#1C1C1E" stroke-width="1" />
+                <rect x="42" y="68" width="6" height="6" rx="2" fill="#C5EC37" stroke="#1C1C1E" stroke-width="1" />
+            </svg>
+        </div>
+        {% endif %}
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-muted" style="font-size:0.9rem; padding:16px 0;">No free slots available currently.</p>
+    {% endif %}
+</div>
+{% endblock %}

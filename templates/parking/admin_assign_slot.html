@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block title %} | Assign Slot{% endblock %}
+
+{% block content %}
+<div class="page-header animate-in">
+    <h2>Assign Slot</h2>
+    <p>Assigning to <strong>{{ parking_request.user.username }}</strong></p>
+</div>
+
+<div style="max-width:520px;">
+    <div class="card animate-in animate-delay-1">
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="slot_id">Select Available Slot</label>
+                <select name="slot_id" id="slot_id" class="form-control" required>
+                    <option value="">Choose a slot...</option>
+                    {% for slot in free_slots %}
+                    <option value="{{ slot.id }}">{{ slot.slot_number }} — {{ slot.location }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div style="display:flex; gap:12px; margin-top:8px;">
+                <button type="submit" class="btn btn-primary">✅ Confirm Assignment</button>
+                <a href="{% url 'admin_pending_requests' %}" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

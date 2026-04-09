@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% block title %} | Active Assignments{% endblock %}
+
+{% block content %}
+<div class="page-header animate-in">
+    <h2>Active Assignments</h2>
+    <p>Currently assigned parking slots</p>
+</div>
+
+<div class="card animate-in animate-delay-1">
+    <div style="overflow-x: auto;">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Slot</th>
+                    <th>Location</th>
+                    <th>Assigned</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for assignment in assignments %}
+                <tr>
+                    <td class="font-bold">{{ assignment.user.username }}</td>
+                    <td>
+                        <span class="badge badge-green">{{ assignment.slot.slot_number }}</span>
+                    </td>
+                    <td>{{ assignment.slot.location }}</td>
+                    <td>{{ assignment.assigned_at|date:"M d, Y" }}</td>
+                    <td>
+                        <form method="post" action="{% url 'admin_release_assignment' assignment.id %}"
+                            style="display:inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger"
+                                style="padding:6px 14px; font-size:0.82rem;">Release</button>
+                        </form>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center text-muted" style="padding:24px;">No active assignments.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

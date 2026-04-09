@@ -1,0 +1,25 @@
+ParkEase Users List
+===================
+Note: Django hashes passwords securely, so original passwords cannot be recovered from the database.
+The passwords listed below are the ones known from our testing sessions.
+
+Username: admin
+Email: admin@example.com (or unspecified)
+Role: Admin
+Password: admin_password123
+----------------------------------------
+
+Username: john_doe
+Email: john@example.com
+Role: User
+Password: user_password123
+----------------------------------------
+
+Username: johnson_user
+Email: johnson@example.com
+Role: User
+Password: StrongPass123_!
+----------------------------------------
+
+env\scripts\activate
+python manage.py runserver

@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+{% block title %} | My Profile{% endblock %}
+
+{% block content %}
+<div class="page-header-row animate-in">
+    <div>
+        <h2 style="font-size:1.8rem; font-weight:800;">My Profile</h2>
+        <p class="text-muted" style="margin-top:4px;">Manage your account details and vehicle information</p>
+    </div>
+</div>
+
+<div class="card animate-in animate-delay-1" style="max-width: 600px; margin: 0 auto;">
+    <div style="text-align: center; margin-bottom: 24px;" id="profile-preview-container">
+        {% if request.user.profile_picture %}
+        <img id="profile-preview-image" src="{{ request.user.profile_picture.url }}" alt="Profile Picture"
+            style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 2px solid var(--border); box-shadow: var(--shadow-sm); display: inline-block;">
+        {% else %}
+        <div id="profile-placeholder"
+            style="width: 100px; height: 100px; border-radius: 50%; background-color: var(--surface-hover); border: 2px dashed var(--border); display: inline-flex; align-items: center; justify-content: center; color: var(--text-muted); margin: 0 auto;">
+            <svg viewBox="0 0 24 24" width="32" height="32" stroke="currentColor" stroke-width="2" fill="none"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+        </div>
+        <img id="profile-preview-image" src="" alt="Profile Picture"
+            style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 2px solid var(--border); box-shadow: var(--shadow-sm); display: none; margin: 0 auto;">
+        {% endif %}
+    </div>
+
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+        {% for field in form %}
+        <div class="form-group">
+            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field }}
+            {% if field.help_text %}
+            <small class="text-muted" style="display:block; margin-top:4px;">{{ field.help_text }}</small>
+            {% endif %}
+            {% if field.errors %}
+            <div style="color: var(--error-red); font-size: 0.82rem; margin-top: 4px; font-weight: 500;">
+                {% for error in field.errors %}
+                {{ error }}
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+        <hr style="border: 0; border-top: 1px solid var(--border); margin: 24px 0;">
+        <button type="submit" class="btn btn-primary" style="width: 100%;">Save Changes</button>
+    </form>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const fileInput = document.getElementById('id_profile_picture');
+        const previewImage = document.getElementById('profile-preview-image');
+        const placeholder = document.getElementById('profile-placeholder');
+
+        if (fileInput) {
+            fileInput.addEventListener('change', function (e) {
+                if (e.target.files && e.target.files[0]) {
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        if (placeholder) {
+                            placeholder.style.display = 'none';
+                        }
+                        if (previewImage) {
+                            previewImage.src = e.target.result;
+                            previewImage.style.display = 'inline-block';
+                        }
+                    }
+                    reader.readAsDataURL(e.target.files[0]);
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

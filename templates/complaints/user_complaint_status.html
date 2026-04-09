@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% block title %} | My Complaints{% endblock %}
+
+{% block content %}
+<div class="page-header-row animate-in">
+    <h2 style="font-size:1.8rem; font-weight:800;">My Complaints</h2>
+    <a href="{% url 'raise_complaint' %}" class="btn btn-primary">+ New Complaint</a>
+</div>
+
+<div class="card animate-in animate-delay-1">
+    <div style="overflow-x: auto;">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Slot</th>
+                    <th>Image</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for complaint in complaints %}
+                <tr>
+                    <td data-label="Date">{{ complaint.created_at|date:"M d, Y H:i" }}</td>
+                    <td data-label="Slot" class="font-bold">{{ complaint.slot.slot_number }}</td>
+                    <td data-label="Image">
+                        {% if complaint.vehicle_image %}
+                        <a href="{{ complaint.vehicle_image.url }}" target="_blank"
+                            style="color:var(--emerald); font-weight:600;">View</a>
+                        {% else %}
+                        <span class="text-muted">N/A</span>
+                        {% endif %}
+                    </td>
+                    <td data-label="Status">
+                        {% if complaint.status == 'Open' %}
+                        <span class="badge badge-red">{{ complaint.status }}</span>
+                        {% else %}
+                        <span class="badge badge-green">{{ complaint.status }}</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="text-center text-muted" style="padding:24px;">You have no complaints.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

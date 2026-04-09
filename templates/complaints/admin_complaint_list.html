@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% block title %} | Manage Complaints{% endblock %}
+
+{% block content %}
+<div class="page-header animate-in">
+    <h2>All Complaints</h2>
+    <p>Review and resolve user complaints</p>
+</div>
+
+<div class="card animate-in animate-delay-1">
+    <div style="overflow-x: auto;">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>User</th>
+                    <th>Slot</th>
+                    <th>Image</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for complaint in complaints %}
+                <tr>
+                    <td>{{ complaint.created_at|date:"M d, Y H:i" }}</td>
+                    <td>
+                        <span class="font-bold">{{ complaint.user.username }}</span><br>
+                        <span class="text-muted" style="font-size:0.8rem;">📱 {{ complaint.user.mobile_number }} &nbsp;
+                            🚗 {{ complaint.user.vehicle_number }}</span>
+                    </td>
+                    <td class="font-bold">{{ complaint.slot.slot_number }}</td>
+                    <td>
+                        {% if complaint.vehicle_image %}
+                        <a href="{{ complaint.vehicle_image.url }}" target="_blank">
+                            <img src="{{ complaint.vehicle_image.url }}" alt="Vehicle"
+                                style="width:50px; height:50px; object-fit:cover; border-radius:var(--radius-sm); border:1px solid var(--border);">
+                        </a>
+                        {% else %}
+                        <span class="text-muted">No Image</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if complaint.status == 'Open' %}
+                        <span class="badge badge-red">{{ complaint.status }}</span>
+                        {% else %}
+                        <span class="badge badge-green">{{ complaint.status }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if complaint.status == 'Open' %}
+                        <form method="post" action="{% url 'admin_resolve_complaint' complaint.id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-primary"
+                                style="padding:4px 12px; font-size:0.8rem;">Resolve</button>
+                        </form>
+                        {% else %}
+                        <span class="badge badge-muted">Done</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center text-muted" style="padding:24px;">No complaints found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

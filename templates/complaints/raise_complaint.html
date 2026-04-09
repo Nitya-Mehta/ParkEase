@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block title %} | Raise Complaint{% endblock %}
+
+{% block content %}
+<div class="auth-container animate-in">
+    <div class="card auth-card">
+        <h2>Raise a Complaint</h2>
+        <div
+            style="margin-bottom:20px; padding:14px; background:var(--bg-soft); border-radius:var(--radius-md); border:1px solid var(--border);">
+            <p class="font-bold">Your Slot: {{ assignment.slot.slot_number }}</p>
+            <p class="text-muted" style="font-size:0.85rem; margin-top:4px;">📍 {{ assignment.slot.location }}</p>
+            <p class="text-muted" style="font-size:0.82rem; margin-top:8px;">Upload a clear image of the unauthorized
+                vehicle showing its license plate.</p>
+        </div>
+
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="{{ form.vehicle_image.id_for_label }}">Vehicle Image</label>
+                {{ form.vehicle_image }}
+                {% if form.vehicle_image.errors %}
+                <div style="color: var(--error-red); font-size: 0.82rem; margin-top: 4px;">{{ form.vehicle_image.errors
+                    }}</div>
+                {% endif %}
+            </div>
+            <div style="display: flex; gap: 12px; margin-top: 16px;">
+                <button type="submit" class="btn btn-primary" style="flex: 1;">Submit Complaint</button>
+                <a href="{% url 'user_complaint_status' %}" class="btn btn-secondary" style="flex: 1;">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

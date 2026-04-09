@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% block title %}About | ParkEase{% endblock %}
+
+{% block content %}
+<div class="container animate-in" style="padding-top: 100px; padding-bottom: 80px; max-width: 900px; margin: 0 auto;">
+    <div style="text-align: center; margin-bottom: 60px;">
+        <h1
+            style="color: var(--text-primary); font-size: clamp(2.5rem, 4vw, 3.5rem); font-weight: 800; margin-bottom: 1rem; letter-spacing: -1px;">
+            About ParkEase
+        </h1>
+        <p style="color: var(--text-secondary); font-size: 1.2rem; line-height: 1.6;">
+            The modern standard for property and private parking management.
+        </p>
+    </div>
+
+    <div
+        style="background: var(--surface); border-radius: 24px; padding: 40px; box-shadow: var(--shadow-sm); border: 1px solid var(--border);">
+        <h2 style="color: var(--text-primary); margin-top: 0; margin-bottom: 20px;">Our Mission</h2>
+        <p style="color: var(--text-secondary); line-height: 1.7; margin-bottom: 40px; font-size: 1.05rem;">
+            Whether you are managing a large commercial parking facility or assigning spots in a private residential
+            complex,
+            ParkEase eliminates the friction of unauthorized parking and manual tracking. Our system bridges the gap
+            between
+            users requesting slots and administrators managing the physical layout of the spaces.
+        </p>
+
+        <h2 style="color: var(--text-primary); margin-bottom: 20px;">How It Works</h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px;">
+            <div style="padding: 24px; background: var(--bg-soft); border-radius: 16px;">
+                <div
+                    style="width: 40px; height: 40px; background: var(--emerald-soft); color: var(--emerald); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; margin-bottom: 16px;">
+                    1</div>
+                <h4 style="margin: 0 0 8px; color: var(--text-primary);">Register</h4>
+                <p style="margin: 0; color: var(--text-secondary); font-size: 0.95rem;">Users create an account and can
+                    immediately view the live parking grid layout.</p>
+            </div>
+
+            <div style="padding: 24px; background: var(--bg-soft); border-radius: 16px;">
+                <div
+                    style="width: 40px; height: 40px; background: var(--emerald-soft); color: var(--emerald); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; margin-bottom: 16px;">
+                    2</div>
+                <h4 style="margin: 0 0 8px; color: var(--text-primary);">Request</h4>
+                <p style="margin: 0; color: var(--text-secondary); font-size: 0.95rem;">Select an available slot or
+                    submit a general request for assignment.</p>
+            </div>
+
+            <div style="padding: 24px; background: var(--bg-soft); border-radius: 16px;">
+                <div
+                    style="width: 40px; height: 40px; background: var(--emerald-soft); color: var(--emerald); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; margin-bottom: 16px;">
+                    3</div>
+                <h4 style="margin: 0 0 8px; color: var(--text-primary);">Manage</h4>
+                <p style="margin: 0; color: var(--text-secondary); font-size: 0.95rem;">Admins review requests, resolve
+                    complaints, and maintain total visibility over the lot.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block footer %}
+<footer class="site-footer" style="margin-top: 80px;">
+    <div class="container footer-content">
+        <span class="footer-brand">ParkEase</span>
+        <p>© 2026 ParkEase. Smart Parking Management System.</p>
+    </div>
+</footer>
+{% endblock %}

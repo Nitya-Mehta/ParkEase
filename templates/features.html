@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+{% block title %}Features | ParkEase{% endblock %}
+
+{% block content %}
+<div class="container animate-in" style="padding-top: 100px; padding-bottom: 80px;">
+    <div style="max-width: 800px; margin: 0 auto; text-align: center;">
+        <h1
+            style="color: var(--text-primary); font-size: clamp(2.5rem, 4vw, 3.5rem); font-weight: 800; margin-bottom: 1rem; letter-spacing: -1px;">
+            Core Features
+        </h1>
+        <p style="color: var(--text-secondary); font-size: 1.2rem; line-height: 1.6; margin-bottom: 3rem;">
+            Discover how ParkEase streamlines your parking management with powerful, easy-to-use tools designed for both
+            users and administrators.
+        </p>
+    </div>
+
+    <!-- ParkPro Feature Cards (ParkEase Context) -->
+    <div class="parkpro-cards-grid" style="margin-top: 40px;">
+        <!-- Card 1 -->
+        <div class="parkpro-card">
+            <div class="img-wrapper">
+                <img src="https://images.unsplash.com/photo-1590674899484-d5640e854abe?w=600&q=80"
+                    alt="Smart assignments">
+            </div>
+            <div class="card-footer">
+                <h3>Assignments</h3>
+                <div class="arrow-btn">
+                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                        <polyline points="12 5 19 12 12 19"></polyline>
+                    </svg>
+                </div>
+            </div>
+            <div style="padding: 0 12px 12px; color: var(--text-secondary); font-size: 0.95rem;">
+                Request and manage permanent or temporary parking slot assignments efficiently over our integrated
+                dashboard.
+            </div>
+        </div>
+
+        <!-- Card 2 (Active/Green Highlight) -->
+        <div class="parkpro-card active">
+            <div class="img-wrapper">
+                <img src="https://images.unsplash.com/photo-1573348722427-f1d6819fdf98?w=600&q=80"
+                    alt="Real-time tracking">
+            </div>
+            <div class="card-footer">
+                <h3>Live Tracking</h3>
+                <div class="arrow-btn">
+                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                        <polyline points="12 5 19 12 12 19"></polyline>
+                    </svg>
+                </div>
+            </div>
+            <div style="padding: 0 12px 12px; color: rgba(255,255,255,0.9); font-size: 0.95rem;">
+                See exactly which slots are open and which are occupied from a top-down visual grid view in real time.
+            </div>
+        </div>
+
+        <!-- Card 3 -->
+        <div class="parkpro-card">
+            <div class="img-wrapper">
+                <img src="https://images.unsplash.com/photo-1486006920555-c77dcf18193c?w=600&q=80"
+                    alt="Issue resolution">
+            </div>
+            <div class="card-footer">
+                <h3>Resolution</h3>
+                <div class="arrow-btn">
+                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                        <polyline points="12 5 19 12 12 19"></polyline>
+                    </svg>
+                </div>
+            </div>
+            <div style="padding: 0 12px 12px; color: var(--text-secondary); font-size: 0.95rem;">
+                Report unauthorized vehicles immediately. Administrators can resolve conflicts directly from the portal.
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block footer %}
+<footer class="site-footer" style="margin-top: 80px;">
+    <div class="container footer-content">
+        <span class="footer-brand">ParkEase</span>
+        <p>© 2026 ParkEase. Smart Parking Management System.</p>
+    </div>
+</footer>
+{% endblock %}

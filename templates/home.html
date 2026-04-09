@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% block title %} | Smart Parking Management{% endblock %}
+
+{% block content %}
+<!-- ParkPro Hero Section -->
+<section class="parkpro-hero animate-in">
+    <div class="hero-bg">
+        <img src="https://images.unsplash.com/photo-1506521781263-d8422e82f27a?w=1600&q=80" alt="Modern parking garage">
+    </div>
+
+    <!-- The exact stair-step layout elements -->
+    <div class="hero-container container">
+        <div class="hero-overlays">
+            <div class="hero-step step-1">
+                <div class="inner-curve"></div>
+                <h1>Park Smart.<br>Park Easy.</h1>
+            </div>
+            <div class="hero-step step-2">
+                <div class="inner-curve"></div>
+                <p>
+                    Professional parking management made simple. Request slots, track assignments, and resolve issues —
+                    from one powerful platform effortlessly.
+                </p>
+                <div class="hero-actions">
+                    <a href="{% url 'register' %}" class="btn btn-primary"
+                        style="padding: 14px 34px; border-radius: var(--radius-full);">Get Started</a>
+                    <a href="{% url 'login' %}" class="btn btn-outline-primary"
+                        style="padding: 14px 34px; border-radius: var(--radius-full);">Login</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ParkPro Feature Cards (ParkEase Context) -->
+<section class="parkpro-features animate-in animate-delay-2">
+    <div class="parkpro-cards-grid">
+        <!-- Card 1 -->
+        <a href="{% url 'features' %}" class="parkpro-card" style="color: inherit;">
+            <div class="img-wrapper">
+                <img src="https://images.unsplash.com/photo-1590674899484-d5640e854abe?w=600&q=80"
+                    alt="Smart assignments">
+            </div>
+            <div class="card-footer">
+                <h3>Assignments</h3>
+                <div class="arrow-btn">
+                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                        <polyline points="12 5 19 12 12 19"></polyline>
+                    </svg>
+                </div>
+            </div>
+        </a>
+
+        <!-- Card 2 (Active/Green Highlight) -->
+        <a href="{% url 'features' %}" class="parkpro-card active" style="color: inherit;">
+            <div class="img-wrapper">
+                <img src="https://images.unsplash.com/photo-1573348722427-f1d6819fdf98?w=600&q=80"
+                    alt="Real-time tracking">
+            </div>
+            <div class="card-footer">
+                <h3>Live Tracking</h3>
+                <div class="arrow-btn">
+                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                        <polyline points="12 5 19 12 12 19"></polyline>
+                    </svg>
+                </div>
+            </div>
+        </a>
+
+        <!-- Card 3 -->
+        <a href="{% url 'features' %}" class="parkpro-card" style="color: inherit;">
+            <div class="img-wrapper">
+                <img src="https://images.unsplash.com/photo-1486006920555-c77dcf18193c?w=600&q=80"
+                    alt="Issue resolution">
+            </div>
+            <div class="card-footer">
+                <h3>Resolution</h3>
+                <div class="arrow-btn">
+                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                        <polyline points="12 5 19 12 12 19"></polyline>
+                    </svg>
+                </div>
+            </div>
+        </a>
+    </div>
+</section>
+{% endblock %}
+
+{% block footer %}
+<footer class="site-footer" style="margin-top: 80px;">
+    <div class="container footer-content">
+        <span class="footer-brand">ParkEase</span>
+        <p>© 2026 ParkEase. Smart Parking Management System.</p>
+    </div>
+</footer>
+{% endblock %}

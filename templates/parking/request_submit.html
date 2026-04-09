@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block title %} | Request Parking{% endblock %}
+
+{% block content %}
+<div class="page-header animate-in">
+    <h2>Request a Parking Slot</h2>
+    <p>Submit a request and an admin will assign you a slot</p>
+</div>
+
+<div style="max-width:520px;">
+    <div class="card animate-in animate-delay-1">
+        <form method="post">
+            {% csrf_token %}
+            <p style="color:var(--text-secondary); margin-bottom:24px; line-height:1.6;">
+                Click the button below to submit your parking request. An administrator will review and assign an
+                available slot to you.
+            </p>
+            <button type="submit" class="btn btn-primary" style="width:100%;">🅿️ Submit Request</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

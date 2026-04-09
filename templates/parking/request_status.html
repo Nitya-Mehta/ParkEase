@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% block title %} | Request Status{% endblock %}
+
+{% block content %}
+<div class="page-header-row animate-in">
+    <div>
+        <h2 style="font-size:1.8rem; font-weight:800;">My Parking Requests</h2>
+        <p class="text-muted" style="margin-top:4px;">Track the status of your parking requests</p>
+    </div>
+    <a href="{% url 'submit_parking_request' %}" class="btn btn-primary">+ New Request</a>
+</div>
+
+<div class="card animate-in animate-delay-1">
+    <div style="overflow-x: auto;">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for req in requests %}
+                <tr>
+                    <td data-label="Date">{{ req.created_at|date:"M d, Y H:i" }}</td>
+                    <td data-label="Status">
+                        <div style="display:flex; align-items:center; justify-content:flex-end; gap:12px;">
+                            {% if req.status == 'Pending' %}
+                            <span class="badge badge-amber">{{ req.status }}</span>
+                            {% elif req.status == 'Approved' %}
+                            <span class="badge badge-green">{{ req.status }}</span>
+                            {% if active_assignment and latest_approved_req and latest_approved_req.id == req.id %}
+                            <form action="{% url 'user_release_assignment' %}" method="post" style="display:inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-secondary"
+                                    style="padding:4px 12px; font-size:0.75rem;">
+                                    🔓 Leave Slot
+                                </button>
+                            </form>
+                            {% endif %}
+                            {% else %}
+                            <span class="badge badge-red">{{ req.status }}</span>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="2" class="text-center text-muted" style="padding:24px;">No requests found. <a
+                            href="{% url 'submit_parking_request' %}">Submit one now.</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

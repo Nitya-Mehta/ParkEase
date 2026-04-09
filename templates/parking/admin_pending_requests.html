@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block title %} | Pending Requests{% endblock %}
+
+{% block content %}
+<div class="page-header animate-in">
+    <h2>Pending Requests</h2>
+    <p>Review and assign parking slots to users</p>
+</div>
+
+<div class="card animate-in animate-delay-1">
+    <div style="overflow-x: auto;">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Date</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for req in requests %}
+                <tr>
+                    <td class="font-bold">{{ req.user.username }}</td>
+                    <td>{{ req.created_at|date:"M d, Y H:i" }}</td>
+                    <td>
+                        <a href="{% url 'admin_assign_slot' req.id %}" class="btn btn-primary"
+                            style="padding:6px 18px; font-size:0.82rem;">Assign Slot</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="3" class="text-center text-muted" style="padding:24px;">No pending requests. 🎉</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

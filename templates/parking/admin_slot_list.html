@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+{% block title %} | Manage Slots{% endblock %}
+
+{% block content %}
+<div class="page-header-row animate-in">
+    <h2 style="font-size:1.8rem; font-weight:800;">Parking Slots</h2>
+    <a href="{% url 'admin_slot_create' %}" class="btn btn-primary">+ New Slot</a>
+</div>
+
+<div class="card animate-in animate-delay-1">
+    <div style="overflow-x: auto;">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Slot No</th>
+                    <th>Location</th>
+                    <th>Status</th>
+                    <th>Active</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for slot in slots %}
+                <tr>
+                    <td class="font-bold">{{ slot.slot_number }}</td>
+                    <td>{{ slot.location }}</td>
+                    <td>
+                        {% if slot.status == 'Free' %}
+                        <span class="badge badge-green">{{ slot.status }}</span>
+                        {% else %}
+                        <span class="badge badge-amber">{{ slot.status }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if slot.is_active %}
+                        <span class="badge badge-green">Active</span>
+                        {% else %}
+                        <span class="badge badge-muted">Disabled</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div style="display: flex; gap: 8px; align-items: center; flex-wrap:wrap;">
+                            <a href="{% url 'admin_slot_edit' slot.id %}" class="btn btn-secondary"
+                                style="padding:6px 14px; font-size:0.82rem;">Edit</a>
+                            <form method="post" action="{% url 'admin_slot_toggle_active' slot.id %}"
+                                style="display:inline;">
+                                {% csrf_token %}
+                                {% if slot.is_active %}
+                                <button type="submit" class="btn btn-danger"
+                                    style="padding:6px 14px; font-size:0.82rem;">Disable</button>
+                                {% else %}
+                                <button type="submit" class="btn btn-primary"
+                                    style="padding:6px 14px; font-size:0.82rem;">Enable</button>
+                                {% endif %}
+                            </form>
+                            {% if slot.status == 'Assigned' %}
+                            <form method="post" action="{% url 'admin_slot_force_release' slot.id %}"
+                                style="display:inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-secondary"
+                                    style="padding:6px 14px; font-size:0.82rem;">Release</button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center text-muted" style="padding:24px;">No parking slots found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
