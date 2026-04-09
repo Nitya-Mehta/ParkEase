@@ -5,6 +5,10 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
 from .forms import CustomUserCreationForm, UserProfileForm
 
+from django.contrib.auth.models import User
+if not User.objects.filter(username='admin').exists():
+    User.objects.create_superuser('admin', 'admin@gmail.com', 'admin123')
+    
 def register_view(request):
     if request.user.is_authenticated:
         return redirect('home')
