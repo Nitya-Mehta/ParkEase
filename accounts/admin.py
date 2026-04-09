@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from .models import User
-
+from parking.models import ParkingSlot, ParkingRequest, SlotAssignment
 
 class CustomUserAdmin(UserAdmin):
     model = User
