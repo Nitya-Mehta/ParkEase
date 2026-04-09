@@ -18,3 +18,6 @@ class CustomUserAdmin(UserAdmin):
 
 
 admin.site.register(User, CustomUserAdmin)
+admin.site.register(ParkingSlot)
+admin.site.register(ParkingRequest)
+admin.site.register(SlotAssignment)
