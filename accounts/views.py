@@ -60,19 +60,20 @@ def logout_view(request):
     return redirect('login')
 
 def home_view(request):
-    try: 
+    try:
         if not User.objects.filter(username='admin').exists():
-        User.objects.create_superuser('admin', 'admin@gmail.com', 'admin123')
+            User.objects.create_superuser('admin', 'admin@gmail.com', 'admin123')
     except:
         pass
-    
+
     if request.user.is_authenticated:
         if request.user.role == 'Admin':
             return redirect('admin_dashboard')
         else:
             return redirect('user_dashboard')
-    return render(request, 'home.html')
 
+    return render(request, 'home.html')
+    
 def features_view(request):
     return render(request, 'features.html')
 
