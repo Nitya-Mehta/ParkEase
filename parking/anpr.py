@@ -5,9 +5,26 @@ from functools import lru_cache
 from time import perf_counter
 from uuid import uuid4
 
-import cv2
-import numpy as np
 from django.core.files.base import ContentFile
+
+cv2 = None
+np = None
+
+
+def get_cv2():
+    global cv2
+    if cv2 is None:
+        import cv2 as cv2_module
+        cv2 = cv2_module
+    return cv2
+
+
+def get_np():
+    global np
+    if np is None:
+        import numpy as np_module
+        np = np_module
+    return np
 
 
 PLATE_TEXT_RE = re.compile(r'[^A-Z0-9]+')
@@ -57,12 +74,15 @@ def get_ocr_engine():
 
 
 def decode_cv_image(image_bytes):
-    image_array = np.frombuffer(image_bytes, dtype=np.uint8)
-    return cv2.imdecode(image_array, cv2.IMREAD_COLOR)
+    cv2_local = get_cv2()
+    np_local = get_np()
+    image_array = np_local.frombuffer(image_bytes, dtype=np_local.uint8)
+    return cv2_local.imdecode(image_array, cv2_local.IMREAD_COLOR)
 
 
 def encode_image_data_uri(image):
-    success, buffer = cv2.imencode('.jpg', image)
+    cv2_local = get_cv2()
+    success, buffer = cv2_local.imencode('.jpg', image)
     if not success:
         return None
     encoded = base64.b64encode(buffer.tobytes()).decode('ascii')
@@ -80,32 +100,35 @@ def resize_for_ocr(image):
     if abs(scale - 1.0) < 0.01:
         return image, 1.0
 
-    resized = cv2.resize(image, None, fx=scale, fy=scale, interpolation=cv2.INTER_CUBIC if scale > 1 else cv2.INTER_AREA)
+    cv2_local = get_cv2()
+    resized = cv2_local.resize(image, None, fx=scale, fy=scale, interpolation=cv2_local.INTER_CUBIC if scale > 1 else cv2_local.INTER_AREA)
     return resized, scale
 
 
 def ensure_bgr(image):
+    cv2_local = get_cv2()
     if len(image.shape) == 2:
-        return cv2.cvtColor(image, cv2.COLOR_GRAY2BGR)
+        return cv2_local.cvtColor(image, cv2_local.COLOR_GRAY2BGR)
     return image
 
 
 def build_ocr_variants(image):
-    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    clahe = cv2.createCLAHE(clipLimit=2.2, tileGridSize=(8, 8))
+    cv2_local = get_cv2()
+    gray = cv2_local.cvtColor(image, cv2_local.COLOR_BGR2GRAY)
+    clahe = cv2_local.createCLAHE(clipLimit=2.2, tileGridSize=(8, 8))
     enhanced_gray = clahe.apply(gray)
-    bilateral = cv2.bilateralFilter(enhanced_gray, 9, 75, 75)
-    thresh = cv2.adaptiveThreshold(
+    bilateral = cv2_local.bilateralFilter(enhanced_gray, 9, 75, 75)
+    thresh = cv2_local.adaptiveThreshold(
         bilateral,
         255,
-        cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
-        cv2.THRESH_BINARY,
+        cv2_local.ADAPTIVE_THRESH_GAUSSIAN_C,
+        cv2_local.THRESH_BINARY,
         31,
         9,
     )
-    blackhat_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (25, 7))
-    blackhat = cv2.morphologyEx(gray, cv2.MORPH_BLACKHAT, blackhat_kernel)
-    sharpen = cv2.addWeighted(enhanced_gray, 1.5, cv2.GaussianBlur(enhanced_gray, (0, 0), 3), -0.5, 0)
+    blackhat_kernel = cv2_local.getStructuringElement(cv2_local.MORPH_RECT, (25, 7))
+    blackhat = cv2_local.morphologyEx(gray, cv2_local.MORPH_BLACKHAT, blackhat_kernel)
+    sharpen = cv2_local.addWeighted(enhanced_gray, 1.5, cv2_local.GaussianBlur(enhanced_gray, (0, 0), 3), -0.5, 0)
 
     return [
         ('original', image),
@@ -124,8 +147,10 @@ def run_ocr(image):
 
 
 def polygon_to_bbox(points):
-    contour = np.array(points, dtype=np.float32)
-    x, y, w, h = cv2.boundingRect(contour.astype(np.int32))
+    cv2_local = get_cv2()
+    np_local = get_np()
+    contour = np_local.array(points, dtype=np_local.float32)
+    x, y, w, h = cv2_local.boundingRect(contour.astype(np_local.int32))
     return {'x': int(x), 'y': int(y), 'w': int(w), 'h': int(h)}
 
 
@@ -294,34 +319,36 @@ def dedupe_candidates(candidates):
 
 
 def find_plate_candidate_boxes(image):
-    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    gray = cv2.GaussianBlur(gray, (5, 5), 0)
+    cv2_local = get_cv2()
+    np_local = get_np()
+    gray = cv2_local.cvtColor(image, cv2_local.COLOR_BGR2GRAY)
+    gray = cv2_local.GaussianBlur(gray, (5, 5), 0)
 
-    rect_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (25, 7))
-    sq_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (5, 5))
+    rect_kernel = cv2_local.getStructuringElement(cv2_local.MORPH_RECT, (25, 7))
+    sq_kernel = cv2_local.getStructuringElement(cv2_local.MORPH_RECT, (5, 5))
 
-    blackhat = cv2.morphologyEx(gray, cv2.MORPH_BLACKHAT, rect_kernel)
-    grad_x = cv2.Sobel(blackhat, cv2.CV_32F, 1, 0, ksize=-1)
-    grad_x = np.absolute(grad_x)
+    blackhat = cv2_local.morphologyEx(gray, cv2_local.MORPH_BLACKHAT, rect_kernel)
+    grad_x = cv2_local.Sobel(blackhat, cv2_local.CV_32F, 1, 0, ksize=-1)
+    grad_x = np_local.absolute(grad_x)
     min_val = float(grad_x.min())
     max_val = float(grad_x.max())
     if max_val - min_val > 0:
         grad_x = ((grad_x - min_val) / (max_val - min_val) * 255).astype('uint8')
     else:
-        grad_x = np.zeros_like(gray)
+        grad_x = np_local.zeros_like(gray)
 
-    grad_x = cv2.morphologyEx(grad_x, cv2.MORPH_CLOSE, rect_kernel)
-    thresh = cv2.threshold(grad_x, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]
-    thresh = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, sq_kernel, iterations=2)
-    thresh = cv2.erode(thresh, None, iterations=1)
-    thresh = cv2.dilate(thresh, None, iterations=2)
+    grad_x = cv2_local.morphologyEx(grad_x, cv2_local.MORPH_CLOSE, rect_kernel)
+    thresh = cv2_local.threshold(grad_x, 0, 255, cv2_local.THRESH_BINARY | cv2_local.THRESH_OTSU)[1]
+    thresh = cv2_local.morphologyEx(thresh, cv2_local.MORPH_CLOSE, sq_kernel, iterations=2)
+    thresh = cv2_local.erode(thresh, None, iterations=1)
+    thresh = cv2_local.dilate(thresh, None, iterations=2)
 
-    contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    contours, _ = cv2_local.findContours(thresh, cv2_local.RETR_EXTERNAL, cv2_local.CHAIN_APPROX_SIMPLE)
     boxes = []
     image_area = image.shape[0] * image.shape[1]
 
-    for contour in sorted(contours, key=cv2.contourArea, reverse=True)[:20]:
-        x, y, w, h = cv2.boundingRect(contour)
+    for contour in sorted(contours, key=cv2_local.contourArea, reverse=True)[:20]:
+        x, y, w, h = cv2_local.boundingRect(contour)
         area = w * h
         aspect_ratio = w / float(max(h, 1))
         if area < image_area * 0.002:
@@ -375,13 +402,14 @@ def select_best_candidate(candidates):
 
 
 def annotate_detection(image, bbox):
+    cv2_local = get_cv2()
     annotated = image.copy()
     if bbox:
         x = bbox['x']
         y = bbox['y']
         w = bbox['w']
         h = bbox['h']
-        cv2.rectangle(annotated, (x, y), (x + w, y + h), (43, 57, 109), 3)
+        cv2_local.rectangle(annotated, (x, y), (x + w, y + h), (43, 57, 109), 3)
     return annotated
 
 
