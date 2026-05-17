@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+{% block title %} | Confirm Parking{% endblock %}
+
+{% block content %}
+<section class="confirm-booking-page animate-in">
+    <div class="confirm-booking-shell glass-panel">
+        <div class="confirm-booking-copy">
+            <span class="section-kicker">Final Step</span>
+            <h1>{% if editable_request %}Review your rescheduled request for {{ requested_slot.slot_number }}{% else %}Confirm your request for {{ requested_slot.slot_number }}{% endif %}</h1>
+            <p>
+                {% if editable_request %}
+                You are about to update this booking request. Once submitted, the area admin will need to approve it again.
+                {% else %}
+                You are about to send a date-based booking request for a specific parking spot. Once submitted, the admin for that
+                area will review and approve it.
+                {% endif %}
+            </p>
+
+            <div class="confirm-stat-grid">
+                <div class="confirm-stat-card">
+                    <span class="confirm-stat-label">Area</span>
+                    <strong>{{ requested_slot.area }}</strong>
+                </div>
+                <div class="confirm-stat-card">
+                    <span class="confirm-stat-label">Basement</span>
+                    <strong>{{ requested_slot.get_basement_level_display }}</strong>
+                </div>
+                <div class="confirm-stat-card">
+                    <span class="confirm-stat-label">Parking Date</span>
+                    <strong>{{ selected_booking_date|date:"M d, Y" }}</strong>
+                </div>
+                <div class="confirm-stat-card">
+                    <span class="confirm-stat-label">Spot</span>
+                    <strong>{{ requested_slot.slot_number }}</strong>
+                </div>
+                <div class="confirm-stat-card">
+                    <span class="confirm-stat-label">Access Tier</span>
+                    <strong>{% if requested_slot.is_vip %}VIP / Premium{% else %}Standard{% endif %}</strong>
+                </div>
+            </div>
+        </div>
+
+        <div class="confirm-booking-card">
+            <div class="spot-preview-card">
+                <span class="spot-preview-kicker">Selected Spot</span>
+                <div class="spot-preview-number">{{ requested_slot.slot_number }}</div>
+                <div class="spot-preview-location">{{ requested_slot.full_location }}</div>
+                <p>{{ requested_slot.location }}</p>
+                <div class="parking-map-shell booking-map-shell car-seat-map" style="margin-top:14px;">
+                    <div class="garage-drive-lane">
+                        <span>Entry</span>
+                        <strong>Your Bay</strong>
+                        <span>Exit</span>
+                    </div>
+                    <div class="parking-bay-map" style="grid-template-columns:minmax(0,1fr);">
+                        <div class="parking-bay free bay-mine">
+                            <span class="bay-roof"></span>
+                            <span class="bay-car-shape"></span>
+                            <span class="bay-number">{{ requested_slot.slot_number }}</span>
+                            <span class="bay-status">Selected</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <form method="post" class="confirm-booking-form">
+                {% csrf_token %}
+                {% if editable_request %}
+                <input type="hidden" name="edit_request" value="{{ editable_request.id }}">
+                {% endif %}
+                <div class="form-group">
+                    <label for="{{ form.requested_start_time.id_for_label }}">Parking Date</label>
+                    {{ form.requested_start_time }}
+                    {% if form.requested_start_time.errors %}
+                    <div class="text-red" style="font-size:0.82rem; margin-top:6px;">{{ form.requested_start_time.errors|join:", " }}</div>
+                    {% endif %}
+                </div>
+                <div class="form-group">
+                    <label for="{{ form.vehicle_plate_number.id_for_label }}">Vehicle</label>
+                    {{ form.vehicle_plate_number }}
+                    {% if form.vehicle_plate_number.errors %}
+                    <div class="text-red" style="font-size:0.82rem; margin-top:6px;">{{ form.vehicle_plate_number.errors|join:", " }}</div>
+                    {% endif %}
+                </div>
+                {% if request.user.can_use_auto_booking %}
+                <div class="form-group" style="padding:16px; border:1px solid var(--border); border-radius:var(--r-md); background:var(--surface-2);">
+                    <label style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
+                        {{ form.enable_auto_book }}
+                        <span>Enable recurring auto-booking for this slot</span>
+                    </label>
+                    <div style="margin-bottom:12px;">
+                        <div style="font-weight:600; margin-bottom:8px;">Repeat on these days</div>
+                        {{ form.recurring_weekdays }}
+                        {% if form.recurring_weekdays.errors %}
+                        <div class="text-red" style="font-size:0.82rem; margin-top:6px;">{{ form.recurring_weekdays.errors|join:", " }}</div>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label for="{{ form.recurring_end_date.id_for_label }}">Repeat Until</label>
+                        {{ form.recurring_end_date }}
+                        {% if form.recurring_end_date.errors %}
+                        <div class="text-red" style="font-size:0.82rem; margin-top:6px;">{{ form.recurring_end_date.errors|join:", " }}</div>
+                        {% endif %}
+                    </div>
+                    <small class="text-muted" style="display:block; margin-top:8px;">ParkEase creates the next matching request automatically whenever you have no pending request or active booking.</small>
+                </div>
+                {% endif %}
+                <button type="submit" class="btn btn-primary" style="width:100%;">{% if editable_request %}Send Updated Request{% else %}Confirm Parking Request{% endif %}</button>
+                <a href="{% url 'submit_parking_request' %}?area={{ requested_slot.area }}&level={{ requested_slot.basement_level }}&booking_date={{ selected_booking_date|date:'Y-m-d' }}{% if editable_request %}&edit_request={{ editable_request.id }}{% endif %}"
+                    class="btn btn-secondary" style="width:100%;">Back To Parking View</a>
+            </form>
+        </div>
+    </div>
+</section>
+{% endblock %}

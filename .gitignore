@@ -1,0 +1,33 @@
+.env
+.env.*
+!.env.example
+
+# Python artifacts
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+
+# Virtual environments
+env/
+.venv/
+venv/
+ENV/
+
+# Django / app runtime files
+db.sqlite3
+media/
+staticfiles/
+collectstatic/
+
+# Local machine / editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Logs and coverage
+*.log
+.coverage
+htmlcov/

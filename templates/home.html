@@ -1,0 +1,166 @@
+{% extends 'base.html' %}
+{% block title %} | Smart Parking Infrastructure{% endblock %}
+
+{% block content %}
+<section class="vision-hero animate-in">
+    <div class="vision-hero-grid">
+        <div class="vision-copy">
+            <span class="section-kicker">Smart Infrastructure Software</span>
+            <h1>Parking operations designed like a premium control system.</h1>
+            <p>
+                ParkEase turns parking requests, approvals, vehicle movement, complaints, and paid access into one
+                elegant operating layer for modern campuses, towers, institutions, and managed facilities.
+            </p>
+            <div class="hero-pill-row">
+                <span class="hero-pill">Vehicle entry + exit scan</span>
+                <span class="hero-pill">Visual basement maps</span>
+                <span class="hero-pill">Premium pass logic</span>
+            </div>
+            <div class="public-hero-actions">
+                <a href="{% url 'register' %}" class="btn btn-primary">Start With ParkEase</a>
+                <a href="{% url 'features' %}" class="btn btn-secondary">Explore Platform</a>
+            </div>
+        </div>
+        <div class="vision-stage">
+            <div class="vision-glow"></div>
+            <div class="vision-console">
+                <div class="vision-console-head">
+                    <span>Live System</span>
+                    <strong>Ahmedabad Network</strong>
+                </div>
+                <div class="vision-metrics">
+                    <article>
+                        <strong>04</strong>
+                        <span>Active city zones</span>
+                    </article>
+                    <article>
+                        <strong>03</strong>
+                        <span>Basement levels tracked</span>
+                    </article>
+                    <article>
+                        <strong>24/7</strong>
+                        <span>Operator visibility</span>
+                    </article>
+                </div>
+                <div class="vision-preview-grid">
+                    <div class="vision-preview-card active">
+                        <span>Requests</span>
+                        <strong>Priority approval flow</strong>
+                        <small>Exact bay, exact date, pass-aware queueing</small>
+                    </div>
+                    <div class="vision-preview-card">
+                        <span>Scanning</span>
+                        <strong>Gate intelligence</strong>
+                        <small>Entry verification, exit release, payment handoff</small>
+                    </div>
+                    <div class="vision-preview-card">
+                        <span>Layouts</span>
+                        <strong>Live deck visibility</strong>
+                        <small>See availability as physical parking, not just rows</small>
+                    </div>
+                    <div class="vision-preview-card">
+                        <span>Support</span>
+                        <strong>Complaint traceability</strong>
+                        <small>Slot-linked issues with real user context</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="immersive-band animate-in animate-delay-1">
+    <div class="immersive-band-head">
+        <div>
+            <span class="section-kicker">Why It Feels Different</span>
+            <h2>Built like a technical operating system, not a generic booking site.</h2>
+        </div>
+        <p>
+            Every surface is tuned for physical parking reality: where the bay is, who requested it, whether the
+            vehicle has entered, how long it stayed, what it costs, and what the admin should do next.
+        </p>
+    </div>
+    <div class="immersive-signal-grid">
+        <article class="signal-card">
+            <span>01</span>
+            <h3>Precision Requesting</h3>
+            <p>Users request exact zones, exact decks, exact bays, and exact dates with visual confidence.</p>
+        </article>
+        <article class="signal-card">
+            <span>02</span>
+            <h3>Operational Intelligence</h3>
+            <p>Admins get pass-aware approvals, complaint context, scan-based release, and cleaner assignment control.</p>
+        </article>
+        <article class="signal-card">
+            <span>03</span>
+            <h3>Infrastructure-Grade UX</h3>
+            <p>Layouts, dashboards, and gate actions are designed to feel premium, fast, and deeply trustworthy.</p>
+        </article>
+    </div>
+</section>
+
+<section class="system-story dark-story animate-in animate-delay-2">
+    <div class="system-story-copy">
+        <span class="section-kicker">From Entry To Exit</span>
+        <h2>A modern parking narrative in one continuous system.</h2>
+        <p>
+            ParkEase keeps the experience coherent from first request to final payment. No switching between scattered
+            tools, manual spreadsheets, or uncertain gate-side decisions.
+        </p>
+    </div>
+    <div class="system-story-timeline">
+        <article>
+            <strong>Request</strong>
+            <p>Visual slot selection with pass-based eligibility and clean request status.</p>
+        </article>
+        <article>
+            <strong>Approve</strong>
+            <p>Admins approve by area and deck with live slot awareness and priority ordering.</p>
+        </article>
+        <article>
+            <strong>Enter</strong>
+            <p>Gate scan marks the vehicle inside and starts the live duration timer.</p>
+        </article>
+        <article>
+            <strong>Exit</strong>
+            <p>Exit scan releases the slot and routes the vehicle into the payment completion flow.</p>
+        </article>
+    </div>
+</section>
+
+<section class="coverage-showcase animate-in animate-delay-3">
+    <div class="coverage-showcase-head">
+        <span class="section-kicker">Coverage</span>
+        <h2>One platform, four Ahmedabad parking zones, one premium control plane.</h2>
+    </div>
+    <div class="coverage-supergrid">
+        <article class="coverage-supercard primary">
+            <strong>Thaltej</strong>
+            <span>High-volume mixed-use parking with strong administrative pressure.</span>
+        </article>
+        <article class="coverage-supercard">
+            <strong>Navrangpura</strong>
+            <span>Fast urban access patterns where turnover and visibility matter.</span>
+        </article>
+        <article class="coverage-supercard">
+            <strong>Paldi</strong>
+            <span>Balanced residential and office parking behavior across multiple decks.</span>
+        </article>
+        <article class="coverage-supercard accent">
+            <strong>Kalupur</strong>
+            <span>Dense movement conditions that benefit from structured bay control.</span>
+        </article>
+    </div>
+</section>
+
+<section class="public-cta premium-cta animate-in animate-delay-3">
+    <div>
+        <span class="section-kicker">Ready To Upgrade Operations</span>
+        <h2>Bring premium product thinking to your parking infrastructure.</h2>
+    </div>
+    <div class="public-cta-actions">
+        <a href="{% url 'register' %}" class="btn btn-primary">Create Account</a>
+        <a href="{% url 'about' %}" class="btn btn-secondary">See The Company</a>
+    </div>
+</section>
+{% endblock %}

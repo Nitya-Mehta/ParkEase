@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block title %} | Exit Payment Result{% endblock %}
+
+{% block content %}
+<div style="max-width:640px; margin:0 auto;">
+    <div class="card animate-in">
+        <div class="scan-status-card {% if success %}scan-status-authorized{% else %}scan-status-no_booking{% endif %}" style="margin-bottom:18px;">
+            <div>
+                <strong>{{ title }}</strong>
+                <div class="text-muted" style="font-size:0.9rem; margin-top:6px;">{{ message }}</div>
+            </div>
+        </div>
+        <a href="{{ return_url }}" class="btn btn-primary">{{ return_label|default:"Back To Gate Scan" }}</a>
+    </div>
+</div>
+{% endblock %}

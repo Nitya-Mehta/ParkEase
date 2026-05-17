@@ -1,0 +1,198 @@
+{% extends 'base.html' %}
+{% block title %} | Request Parking{% endblock %}
+
+{% block content %}
+<section class="booking-experience animate-in" id="bookingExperience"
+    data-switcher data-default-area="{{ selected_area }}" data-default-level="{{ selected_level }}">
+    <div class="booking-hero">
+        <div>
+            <span class="section-kicker">Reserve With Precision</span>
+            <h1>{% if editable_request %}Reschedule your request with a new spot or date.{% else %}Pick your zone. Open a basement. Lock in the exact spot you want.{% endif %}</h1>
+            <p>
+                {% if editable_request %}
+                Choose a different bay or date, then send the updated request back for admin approval.
+                {% else %}
+                This booking board is fully visual now. Explore all four areas, switch levels instantly, and tap any
+                free bay to review the final booking before you submit it.
+                {% endif %}
+            </p>
+        </div>
+        <div class="booking-hero-actions">
+            <a href="{% url 'request_status' %}" class="btn btn-secondary">View My Requests</a>
+            <a href="#parkingUniverse" class="btn btn-primary">Start Exploring</a>
+        </div>
+    </div>
+
+    <div class="card glass-panel" style="padding:20px 24px;">
+        <div class="booking-panel-head" style="margin-bottom:14px;">
+            <span class="section-kicker">Booking Date</span>
+            <h3>What date do you want to park?</h3>
+            <p>Availability below is shown only for the selected date. {{ request.user.parking_pass_label }} users can book until {{ booking_window_max_date|date:"d M Y" }}.</p>
+        </div>
+        <form method="get" style="display:flex; gap:12px; flex-wrap:wrap; align-items:end;">
+            <input type="hidden" name="area" value="{{ selected_area }}">
+            <input type="hidden" name="level" value="{{ selected_level }}">
+            {% if editable_request %}
+            <input type="hidden" name="edit_request" value="{{ editable_request.id }}">
+            {% endif %}
+            <div class="form-group" style="margin-bottom:0; min-width:240px;">
+                <label for="booking_date">Parking Date</label>
+                <input id="booking_date" type="date" name="booking_date" class="form-control" value="{{ selected_booking_date|date:'Y-m-d' }}" max="{{ booking_window_max_date|date:'Y-m-d' }}">
+            </div>
+            <button type="submit" class="btn btn-primary">Show Availability</button>
+        </form>
+    </div>
+
+    <div class="location-map-panel glass-panel">
+        <div class="location-map-copy">
+            <span class="section-kicker">Ahmedabad Map</span>
+            <h2>Choose your parking location</h2>
+            <p>Tap a location pin, then choose the basement and spot for that area.</p>
+        </div>
+        <div class="satellite-map-shell">
+            <iframe src="{{ satellite_map_url }}" loading="lazy" referrerpolicy="no-referrer-when-downgrade"
+                aria-label="Satellite map of Ahmedabad"></iframe>
+            <div class="map-pin-layer">
+                {% for location in parking_locations %}
+                <button type="button" class="map-location-pin {% if location.name == selected_area %}active{% endif %}"
+                    data-area-target="{{ location.name }}" data-scroll-target="parkingUniverse"
+                    style="left: {{ location.pin_x }}%; top: {{ location.pin_y }}%;">
+                    <span class="map-pin-dot"></span>
+                    <span class="map-pin-label">{{ location.name }}</span>
+                </button>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div class="booking-shell" id="parkingUniverse">
+        <aside class="booking-sidebar">
+            <div class="booking-panel glass-panel">
+                <div class="booking-panel-head">
+                    <span class="section-kicker">Areas</span>
+                    <h3>Choose a city zone</h3>
+                    <p>Users can book across all available locations.</p>
+                </div>
+
+                <div class="area-orbit" role="tablist" aria-label="Parking areas">
+                    {% for area in area_options %}
+                    <button type="button" class="area-orbit-card {% if area == selected_area %}active{% endif %}"
+                        data-area-target="{{ area }}">
+                        <span class="area-orbit-name">{{ area }}</span>
+                        <span class="area-orbit-detail">Live parking deck</span>
+                    </button>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="booking-panel glass-panel">
+                <div class="booking-panel-head">
+                    <span class="section-kicker">Levels</span>
+                    <h3>Switch basement decks</h3>
+                    <p>No reloads. Just move across levels and keep browsing.</p>
+                </div>
+
+                <div class="basement-pills">
+                    {% for basement in basement_summaries %}
+                    <button type="button" class="basement-pill {% if basement.value == selected_level %}active{% endif %}"
+                        data-level-target="{{ basement.value }}"
+                        data-area="{{ selected_area }}"
+                        data-free-counts="{{ basement.free_counts_text }}">
+                        <span>{{ basement.label }}</span>
+                        <small data-free-label>{{ basement.free_slots }} free</small>
+                    </button>
+                    {% endfor %}
+                </div>
+            </div>
+        </aside>
+
+        <section class="booking-main">
+            <div class="booking-stage glass-panel">
+                <div class="booking-stage-head">
+                    <div>
+                        <span class="section-kicker">Live Layout</span>
+                        <h2 id="bookingSelectionTitle">{{ selected_area }} • {{ selected_level_label }}</h2>
+                        <p id="bookingSelectionCaption">Showing availability for {{ selected_booking_date|date:"d M Y" }}. Select any free spot below to continue. VIP bays are reserved for Premium Pass users.</p>
+                    </div>
+                    <div class="parking-legend booking-legend">
+                        <span><i class="legend-dot free"></i> Ready to book</span>
+                        <span><i class="legend-dot assigned"></i> Occupied</span>
+                        <span><i class="legend-dot assigned"></i> VIP locked</span>
+                    </div>
+                </div>
+
+
+                {% for area_group in grouped_slots %}
+                    {% for level_group in area_group.levels %}
+                    <div class="parking-deck {% if area_group.area == selected_area and level_group.value == selected_level %}active{% endif %}"
+                        data-area-panel="{{ area_group.area }}" data-level-panel="{{ level_group.value }}"
+                        data-level-label="{{ level_group.label }}">
+                        <div class="deck-meta">
+                            <div class="deck-chip">{{ area_group.area }}</div>
+                            <div class="deck-chip muted">{{ level_group.label }}</div>
+                        </div>
+                        <div class="parking-map-shell booking-map-shell car-seat-map">
+                            {% if level_group.slots %}
+                            <div class="garage-map-head">
+                                <div>
+                                    <span class="section-kicker">Parking Bay Map</span>
+                                    <h3>Choose one free bay</h3>
+                                </div>
+                                <div class="garage-map-key">
+                                    <span><i class="garage-key-dot free"></i> Free</span>
+                                    <span><i class="garage-key-dot occupied"></i> Occupied</span>
+                                </div>
+                            </div>
+                            <div class="garage-drive-lane">
+                                <span>Entry</span>
+                                <strong>Drive Lane</strong>
+                                <span>Exit</span>
+                            </div>
+                            <div class="parking-bay-map" aria-label="Selectable parking bay map">
+                                {% for slot in level_group.slots %}
+                                {% if slot.display_status == 'Free' %}
+                                <a href="{% url 'confirm_parking_request' slot.id %}?booking_date={{ selected_booking_date|date:'Y-m-d' }}{% if editable_request %}&edit_request={{ editable_request.id }}{% endif %}" class="parking-bay free{% if slot.is_preselected %} bay-requested{% endif %}"
+                                    data-slot-id="{{ slot.id }}"
+                                    data-confirm-url="{% url 'confirm_parking_request' slot.id %}?booking_date={{ selected_booking_date|date:'Y-m-d' }}{% if editable_request %}&edit_request={{ editable_request.id }}{% endif %}"
+                                    data-preserve-scroll="bookingExperience">
+                                    <span class="bay-roof"></span>
+                                    <span class="bay-car-shape"></span>
+                                    <span class="bay-number">{{ slot.slot_number }}</span>
+                                    <span class="bay-status">{% if slot.is_vip %}VIP{% elif slot.is_preselected %}Selected{% else %}Free{% endif %}</span>
+                                </a>
+                                {% else %}
+                                <div class="parking-bay occupied" aria-disabled="true" data-slot-id="{{ slot.id }}"
+                                    data-confirm-url="{% url 'confirm_parking_request' slot.id %}">
+                                    <span class="bay-roof"></span>
+                                    <span class="bay-car-shape"></span>
+                                    <span class="bay-number">{{ slot.slot_number }}</span>
+                                    <span class="bay-status">{% if slot.display_status == 'Locked' %}{{ slot.lock_reason }}{% else %}Booked{% endif %}</span>
+                                </div>
+                                {% endif %}
+                                {% endfor %}
+                            </div>
+                            {% else %}
+                            <div class="empty-layout-state">
+                                <h4>No slots configured yet</h4>
+                                <p>Add slots for {{ area_group.area }} in {{ level_group.label }} from the admin slot page.</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                    </div>
+                    {% endfor %}
+                {% endfor %}
+                {% if preselected_slot %}
+                <div class="booking-selected-card booking-selected-inline">
+                    <div>
+                        <div class="text-muted" style="font-size:0.78rem; padding-top:15px;">Selected Spot</div>
+                        <strong style="font-size:2rem;">{{ preselected_slot.slot_number }}</strong>
+                    </div>
+                    <a href="{% url 'confirm_parking_request' preselected_slot.id %}?booking_date={{ selected_booking_date|date:'Y-m-d' }}{% if editable_request %}&edit_request={{ editable_request.id }}{% endif %}" class="btn btn-primary" style="margin-top:10px; width:100%">Continue</a>
+                </div>
+                {% endif %}
+            </div>
+        </section>
+    </div>
+</section>
+{% endblock %}

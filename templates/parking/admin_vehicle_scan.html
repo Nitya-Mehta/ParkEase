@@ -1,0 +1,152 @@
+{% extends 'base.html' %}
+{% block title %} | Gate Scan{% endblock %}
+
+{% block content %}
+<div class="page-header animate-in">
+    <h2>Gate Vehicle Scan</h2>
+    <p>
+        Verify a vehicle using camera capture or image upload{% if admin_scope_area %} for <strong>{{ admin_scope_area }}</strong>{% endif %}.
+    </p>
+</div>
+
+<section class="grid grid-2" style="align-items:start;">
+    <div class="card animate-in animate-delay-1">
+        <div class="scan-console-head">
+            <div>
+                <span class="section-kicker">Live Capture</span>
+                <h3>Capture or upload a vehicle image</h3>
+                <p class="text-muted">Use the camera for a quick gate demo, or upload a parked vehicle image manually.</p>
+            </div>
+        </div>
+
+        <form method="post" enctype="multipart/form-data" class="scan-console-form" id="vehicleScanForm">
+            {% csrf_token %}
+            {{ form.captured_image_data }}
+
+            <div class="form-group" style="margin-bottom:16px;">
+                <label for="{{ form.gate_mode.id_for_label }}">Gate Mode</label>
+                {{ form.gate_mode }}
+                <div class="text-muted" style="font-size:0.82rem; margin-top:6px;">
+                    Choose Entry to mark a vehicle inside, or Exit to verify that it has left and free the slot.
+                </div>
+            </div>
+
+            <div class="scan-camera-shell">
+                <video id="scanCameraFeed" class="scan-camera-feed" autoplay playsinline muted></video>
+                <canvas id="scanCaptureCanvas" class="scan-camera-feed" hidden></canvas>
+                <div id="scanCameraFallback" class="scan-camera-fallback">
+                    Camera preview will appear here after you start it.
+                </div>
+            </div>
+
+            <div class="scan-action-row">
+                <button type="button" class="btn btn-primary" id="scanStartCamera">Start Camera</button>
+                <button type="button" class="btn btn-secondary" id="scanCaptureFrame">Capture Frame</button>
+                <button type="button" class="btn btn-secondary" id="scanResetCapture">Reset</button>
+            </div>
+
+            <div class="form-group" style="margin-top:16px;">
+                <label for="{{ form.image.id_for_label }}">Upload Vehicle Image</label>
+                {{ form.image }}
+                <div class="text-muted" style="font-size:0.82rem; margin-top:6px;">
+                    On Android and iPhone, tapping this should prefer the rear camera as a fallback even if live preview is blocked.
+                </div>
+                {% if form.image.errors %}
+                <div class="text-red" style="font-size:0.82rem; margin-top:6px;">{{ form.image.errors|join:", " }}</div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.plate_number.id_for_label }}">Manual Plate Override</label>
+                {{ form.plate_number }}
+                <div class="text-muted" style="font-size:0.82rem; margin-top:6px;">
+                    Leave this empty to let OCR read the plate itself. Use it only if the extracted text is wrong.
+                </div>
+                {% if form.plate_number.errors %}
+                <div class="text-red" style="font-size:0.82rem; margin-top:6px;">{{ form.plate_number.errors|join:", " }}</div>
+                {% endif %}
+            </div>
+
+            {% if form.non_field_errors %}
+            <div class="text-red" style="font-size:0.82rem; margin-bottom:12px;">{{ form.non_field_errors|join:", " }}</div>
+            {% endif %}
+
+            <button type="submit" class="btn btn-primary" style="width:100%;">Run Gate Verification</button>
+        </form>
+    </div>
+
+    <div class="grid" style="gap:20px;">
+        <div class="card animate-in animate-delay-2">
+            <span class="section-kicker">Latest Result</span>
+            <h3>Verification Summary</h3>
+            {% if result %}
+            <div class="scan-status-card scan-status-{{ result.status }}">
+                <div>
+                    <strong>{{ result.log.get_gate_mode_display }} • {{ result.log.get_status_display }}</strong>
+                    <div class="text-muted" style="font-size:0.82rem;">{{ result.notes }}</div>
+                </div>
+                {% if result.plate_number %}
+                <span class="badge {% if result.status == 'authorized' or result.status == 'exited' %}badge-green{% elif result.status == 'already_inside' or result.status == 'already_outside' %}badge-amber{% else %}badge-red{% endif %}">
+                    {{ result.plate_number }}
+                </span>
+                {% endif %}
+            </div>
+
+            <div class="grid gap-sm" style="margin-top:18px;">
+                {% if result.detection.annotated_image %}
+                <div class="scan-preview-card">
+                    <div class="font-bold" style="margin-bottom:8px;">Detected Plate Zone</div>
+                    <img src="{{ result.detection.annotated_image }}" alt="Detected vehicle plate region" class="scan-preview-image">
+                </div>
+                {% endif %}
+                {% if result.detection.plate_crop_image %}
+                <div class="scan-preview-card">
+                    <div class="font-bold" style="margin-bottom:8px;">Plate Crop</div>
+                    <img src="{{ result.detection.plate_crop_image }}" alt="Detected plate crop" class="scan-preview-image">
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="grid gap-sm" style="margin-top:18px;">
+                <div class="metric-strip">
+                    <strong>Detected Plate</strong>
+                    <span class="text-muted">{{ result.plate_number|default:"Not detected" }}</span>
+                </div>
+                <div class="metric-strip">
+                    <strong>Matched User</strong>
+                    <span class="text-muted">{% if result.matched_user %}{{ result.matched_user.username }}{% else %}Not found{% endif %}</span>
+                </div>
+                <div class="metric-strip">
+                    <strong>Matched Slot</strong>
+                    <span class="text-muted">{% if result.matched_assignment %}{{ result.matched_assignment.slot.slot_number }} • {{ result.matched_assignment.slot.full_location }}{% else %}No valid booking{% endif %}</span>
+                </div>
+            </div>
+            {% else %}
+            <p class="text-muted" style="margin-top:10px;">No scan run yet. Start the camera, capture a frame, and submit it here.</p>
+            {% endif %}
+        </div>
+
+        <div class="card animate-in animate-delay-3">
+            <span class="section-kicker">Recent Scans</span>
+            <h3>Gate activity</h3>
+            <div class="grid gap-sm" style="margin-top:16px;">
+                {% for scan in latest_scans %}
+                <div class="metric-strip">
+                    <div>
+                        <strong>{{ scan.detected_plate|default:"Unknown plate" }}</strong>
+                        <div class="text-muted" style="font-size:0.8rem;">{{ scan.created_at|date:"M d, Y H:i" }}</div>
+                    </div>
+                    <div style="text-align:right;">
+                        <span class="badge {% if scan.status == 'authorized' or scan.status == 'exited' %}badge-green{% elif scan.status == 'already_inside' or scan.status == 'already_outside' %}badge-amber{% else %}badge-red{% endif %}">
+                            {{ scan.get_gate_mode_display }} • {{ scan.get_status_display }}
+                        </span>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-muted">No scans recorded yet.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

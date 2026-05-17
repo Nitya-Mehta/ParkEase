@@ -1,0 +1,139 @@
+{% extends 'base.html' %}
+{% block title %} | Exit Payment{% endblock %}
+
+{% block content %}
+<div class="page-header animate-in">
+    <h2>Exit Payment</h2>
+    <p>Complete the real Razorpay checkout after a successful exit scan.</p>
+</div>
+
+<div style="max-width:620px;">
+    <div class="card animate-in animate-delay-1">
+        <div style="margin-bottom:18px;">
+            <div class="text-muted" style="font-size:0.8rem; text-transform:uppercase; letter-spacing:0.08em;">Payment Summary</div>
+            <div style="font-size:1.5rem; font-weight:800; margin-top:8px;">Slot {{ assignment.slot.slot_number }}</div>
+            <div class="text-muted">{{ assignment.slot.full_location }}</div>
+        </div>
+
+        <div class="grid gap-sm" style="margin-bottom:22px;">
+            <div class="metric-strip">
+                <strong>User</strong>
+                <span class="text-muted">{{ assignment.user.username }}</span>
+            </div>
+            <div class="metric-strip">
+                <strong>Vehicle</strong>
+                <span class="text-muted">{{ payment_state.plate_number|default:assignment.vehicle_plate_number|default:assignment.user.vehicle_number|default:"Not available" }}</span>
+            </div>
+            <div class="metric-strip">
+                <strong>Parked Duration</strong>
+                <span class="text-muted">{{ assignment.parking_duration_display }}</span>
+            </div>
+            <div class="metric-strip">
+                <strong>Amount</strong>
+                <span class="text-muted">Rs. {{ payment_amount }}</span>
+            </div>
+            <div class="metric-strip">
+                <strong>Gateway</strong>
+                <span class="text-muted">{% if gateway_ready %}Razorpay Checkout{% else %}Not configured{% endif %}</span>
+            </div>
+        </div>
+
+        {% if payment_done %}
+        <div class="scan-status-card scan-status-authorized" style="margin-bottom:18px;">
+            <div>
+                <strong>Payment Done</strong>
+                <div class="text-muted" style="font-size:0.82rem;">Razorpay verified the checkout and the payment was marked successful.</div>
+            </div>
+        </div>
+        <a href="{% url 'admin_vehicle_scan' %}" class="btn btn-primary">Back To Gate Scan</a>
+        {% elif gateway_ready %}
+        <div class="scan-status-card scan-status-authorized" style="margin-bottom:18px;">
+            <div>
+                <strong>Razorpay Ready</strong>
+                <div class="text-muted" style="font-size:0.82rem;">The Razorpay screen will open automatically. If it does not, use the button below.</div>
+            </div>
+        </div>
+        <div style="display:flex; gap:12px; flex-wrap:wrap;">
+            <button type="button" class="btn btn-primary" id="razorpayPayButton">Pay With Razorpay</button>
+            <a href="{% url 'admin_vehicle_scan' %}" class="btn btn-secondary">Cancel</a>
+        </div>
+        {% else %}
+        <div class="scan-status-card scan-status-no_booking" style="margin-bottom:18px;">
+            <div>
+                <strong>Razorpay Setup Needed</strong>
+                <div class="text-muted" style="font-size:0.82rem;">Add `RAZORPAY_KEY_ID` and `RAZORPAY_KEY_SECRET` in `.env`, then reload this page.</div>
+            </div>
+        </div>
+        <a href="{% url 'admin_vehicle_scan' %}" class="btn btn-secondary">Back</a>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+{% if gateway_ready and not payment_done %}
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+    (function () {
+        const payButton = document.getElementById('razorpayPayButton');
+
+        if (!payButton || typeof Razorpay === 'undefined') {
+            return;
+        }
+        const callbackUrl = '{{ razorpay_callback_url|escapejs }}';
+
+        function redirectWithStatus(status, reason) {
+            const url = new URL(callbackUrl, window.location.origin);
+            url.searchParams.set('status', status);
+            if (reason) {
+                url.searchParams.set('reason', reason);
+            }
+            window.location.href = url.toString();
+        }
+
+        const options = {
+            key: '{{ razorpay_key_id|escapejs }}',
+            amount: '{{ checkout_state.amount_paise }}',
+            currency: '{{ checkout_state.currency|default:"INR"|escapejs }}',
+            name: '{{ razorpay_company_name|escapejs }}',
+            description: 'Parking exit payment for slot {{ assignment.slot.slot_number|escapejs }}',
+            order_id: '{{ checkout_state.order_id|escapejs }}',
+            callback_url: callbackUrl,
+            redirect: true,
+            modal: {
+                ondismiss: function () {
+                    redirectWithStatus('cancelled');
+                }
+            },
+            prefill: {
+                name: '{{ assignment.user.get_full_name|default:assignment.user.username|escapejs }}',
+                email: '{{ assignment.user.email|default:""|escapejs }}',
+                contact: '{{ assignment.user.mobile_number|default:""|escapejs }}'
+            },
+            notes: {
+                slot_number: '{{ assignment.slot.slot_number|escapejs }}',
+                vehicle_number: '{{ payment_state.plate_number|default:assignment.vehicle_plate_number|default:assignment.user.vehicle_number|default:""|escapejs }}'
+            },
+            theme: {
+                color: '#2b396d'
+            }
+        };
+
+        const razorpay = new Razorpay(options);
+        razorpay.on('payment.failed', function (response) {
+            const error = response && response.error ? response.error : {};
+            redirectWithStatus('failed', error.description || error.reason || error.code || 'Razorpay reported that the payment failed.');
+        });
+        payButton.addEventListener('click', function () {
+            payButton.disabled = true;
+            razorpay.open();
+        });
+
+        window.addEventListener('load', function () {
+            payButton.click();
+        }, { once: true });
+    }());
+</script>
+{% endif %}
+{% endblock %}

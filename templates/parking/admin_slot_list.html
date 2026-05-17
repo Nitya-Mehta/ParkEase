@@ -1,0 +1,170 @@
+{% extends 'base.html' %}
+{% block title %} | Manage Slots{% endblock %}
+
+{% block content %}
+<div class="page-header-row animate-in">
+    <div>
+        <h2 style="font-size:1.8rem; font-weight:800;">Parking Slots</h2>
+        <p class="text-muted" style="margin-top:4px;">
+            Categorized by area and basement{% if admin_scope_area %} for {{ admin_scope_area }}{% endif %}
+        </p>
+    </div>
+    <a href="{% url 'admin_slot_create' %}" class="btn btn-primary">+ New Slot</a>
+</div>
+
+<section class="layout-board card animate-in animate-delay-1 dashboard-switcher" style="margin-bottom:24px;" id="adminSlotExplorer"
+    data-switcher data-default-area="{{ selected_area }}" data-default-level="{{ selected_level }}">
+    <div class="layout-control-bar">
+        {% if not admin_scope_area %}
+        <div class="mini-area-tabs">
+            {% for area in area_options %}
+            <button type="button"
+                class="mini-area-tab {% if area == selected_area %}active{% endif %}"
+                data-area-target="{{ area }}">{{ area }}</button>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="scope-pill">Scoped to {{ admin_scope_area }}</div>
+        {% endif %}
+        <div class="mini-level-tabs">
+            {% for basement in basement_summaries %}
+            <button type="button"
+                class="mini-level-tab {% if basement.value == selected_level %}active{% endif %}"
+                data-level-target="{{ basement.value }}"
+                data-free-counts="{{ basement.free_counts_text }}">
+                {{ basement.label }}
+                <small data-free-label>{{ basement.free_slots }} free</small>
+            </button>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="slot-list-head">
+        <div>
+            <span class="section-kicker">Current Slice</span>
+            <h3 id="adminSlotsTitle">{{ selected_area }} • {{ selected_level_label }}</h3>
+        </div>
+    </div>
+    {% for area_panel in slot_panels %}
+        {% for level_panel in area_panel.levels %}
+        <div class="switcher-panel {% if area_panel.area == selected_area and level_panel.value == selected_level %}active{% endif %}"
+            data-area-panel="{{ area_panel.area }}" data-level-panel="{{ level_panel.value }}"
+            data-level-label="{{ level_panel.label }}">
+            {% if level_panel.slots %}
+            <div class="parking-map-shell booking-map-shell car-seat-map" style="margin-bottom:16px;">
+                <div class="garage-drive-lane">
+                    <span>Entry</span>
+                    <strong>Operations Lane</strong>
+                    <span>Exit</span>
+                </div>
+                <div class="parking-bay-map">
+                    {% for slot in level_panel.slots %}
+                    <div class="parking-bay {% if slot.dashboard_presence == 'Free' and slot.is_active %}free{% else %}occupied{% endif %}{% if not slot.is_active %} bay-disabled{% endif %}">
+                        <span class="bay-roof"></span>
+                        <span class="bay-car-shape"></span>
+                        <span class="bay-number">{{ slot.slot_number }}</span>
+                        <span class="bay-status">
+                            {% if not slot.is_active %}
+                            Disabled
+                            {% elif slot.dashboard_presence == 'Inside' %}
+                            Inside
+                            {% elif slot.dashboard_presence == 'Outside' %}
+                            Outside
+                            {% elif slot.dashboard_presence == 'Free' %}
+                            Free
+                            {% else %}
+                            Vehicle Outside
+                            {% endif %}
+                        </span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            <div style="overflow-x: auto;">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Slot No</th>
+                            <th>Location</th>
+                            <th>Tier</th>
+                            <th>Status</th>
+                            <th>Active</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for slot in level_panel.slots %}
+                        <tr>
+                            <td class="font-bold">{{ slot.slot_number }}</td>
+                            <td>{{ slot.location }}</td>
+                            <td>
+                                {% if slot.is_vip %}
+                                <span class="badge badge-amber">VIP</span>
+                                {% else %}
+                                <span class="badge badge-muted">Standard</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if slot.dashboard_presence == 'Inside' %}
+                                <span class="badge badge-green">Vehicle Inside</span>
+                                {% elif slot.dashboard_presence == 'Outside' %}
+                                <span class="badge badge-amber">Vehicle Outside</span>
+                                {% elif slot.dashboard_presence == 'Free' %}
+                                <span class="badge badge-green">Free</span>
+                                {% else %}
+                                <span class="badge badge-muted">Disabled</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if slot.is_active %}
+                                <span class="badge badge-green">Active</span>
+                                {% else %}
+                                <span class="badge badge-muted">Disabled</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div style="display: flex; gap: 8px; align-items: center; flex-wrap:wrap;">
+                                    <a href="{% url 'admin_slot_edit' slot.id %}" class="btn btn-secondary"
+                                        style="padding:6px 14px; font-size:0.82rem;">Edit</a>
+                                    <form method="post" action="{% url 'admin_slot_toggle_active' slot.id %}"
+                                        style="display:inline;">
+                                        {% csrf_token %}
+                                        {% if slot.is_active %}
+                                        <button type="submit" class="btn btn-danger"
+                                            style="padding:6px 14px; font-size:0.82rem;">Disable</button>
+                                        {% else %}
+                                        <button type="submit" class="btn btn-primary"
+                                            style="padding:6px 14px; font-size:0.82rem;">Enable</button>
+                                        {% endif %}
+                                    </form>
+                                    {% if slot.status == 'Assigned' %}
+                                    <form method="post" action="{% url 'admin_slot_force_release' slot.id %}"
+                                        style="display:inline;">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-secondary"
+                                            style="padding:6px 14px; font-size:0.82rem;">Release</button>
+                                    </form>
+                                    {% endif %}
+                                    <form method="post" action="{% url 'admin_slot_delete' slot.id %}"
+                                        style="display:inline;">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-danger"
+                                            style="padding:6px 14px; font-size:0.82rem;">Delete</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center text-muted" style="padding:24px;">No parking slots found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endfor %}
+    {% endfor %}
+</section>
+{% endblock %}

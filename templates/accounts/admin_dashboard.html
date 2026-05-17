@@ -1,0 +1,212 @@
+{% extends 'base.html' %}
+{% block title %} | Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="page-header animate-in">
+    <h2>Management Dashboard</h2>
+    <p>
+        Overview of your parking system{% if admin_scope_area %} for <strong>{{ admin_scope_area }}</strong>{% endif %}
+    </p>
+</div>
+
+<!-- Stats Grid -->
+<div class="grid grid-auto animate-in animate-delay-1" style="margin-bottom:28px;">
+    <div class="card stat-card card-glow">
+        <div class="stat-value">{{ total_slots }}</div>
+        <div class="stat-label">Total Slots</div>
+    </div>
+    <div class="card stat-card card-glow">
+        <div class="stat-value text-green">{{ free_slots }}</div>
+        <div class="stat-label">Free</div>
+    </div>
+    <div class="card stat-card card-glow">
+        <div class="stat-value">{{ assigned_slots }}</div>
+        <div class="stat-label">Assigned</div>
+    </div>
+    <div class="card stat-card card-glow">
+        <div class="stat-value text-amber">{{ pending_requests }}</div>
+        <div class="stat-label">Pending</div>
+    </div>
+    <div class="card stat-card card-glow">
+        <div class="stat-value text-red">{{ open_complaints }}</div>
+        <div class="stat-label">Complaints</div>
+    </div>
+    <div class="card stat-card card-glow">
+        <div class="stat-value">{{ active_vehicles }}</div>
+        <div class="stat-label">Vehicles Inside</div>
+    </div>
+</div>
+
+<div class="grid grid-2 animate-in animate-delay-2" style="margin-bottom:24px;">
+    <div class="card">
+        <h3 class="text-muted mb-4" style="font-size:0.8rem; text-transform:uppercase; letter-spacing:0.5px; font-weight:700;">
+            Request Status Breakdown
+        </h3>
+        <div class="grid gap-sm">
+            {% for item in request_status_breakdown %}
+            <div class="metric-strip">
+                <strong>{{ item.label }}</strong>
+                <span class="text-muted">{{ item.value }} • {{ item.percent_of_total }}%</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="card">
+        <h3 class="text-muted mb-4" style="font-size:0.8rem; text-transform:uppercase; letter-spacing:0.5px; font-weight:700;">
+            Request Volume This Week
+        </h3>
+        <div class="dashboard-trend-list">
+            {% for item in recent_request_volume %}
+            <div class="dashboard-trend-row">
+                <strong>{{ item.label }}</strong>
+                <div class="dashboard-bar-track">
+                    <div class="dashboard-bar-fill" style="width: {{ item.percent }}%;"></div>
+                </div>
+                <span>{{ item.value }} requests</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Management Modules -->
+<div class="card animate-in animate-delay-2">
+    <h3 class="text-muted mb-4"
+        style="font-size:0.8rem; text-transform:uppercase; letter-spacing:0.5px; font-weight:700;">
+        Management Modules
+    </h3>
+    <div class="grid grid-2">
+        <a href="{% url 'admin_pending_requests' %}" class="action-link action-link-highlight">
+            📬 Pending Requests
+            {% if pending_requests %}
+            <span class="count-badge">{{ pending_requests }}</span>
+            {% endif %}
+        </a>
+        <a href="{% url 'admin_vehicle_scan' %}" class="action-link">📷 Gate Scan</a>
+        <a href="{% url 'admin_active_assignments' %}" class="action-link">📌 Active Assignments</a>
+        <a href="{% url 'admin_slot_list' %}" class="action-link">🅿️ Manage Slots</a>
+        <a href="{% url 'admin_complaint_list' %}"
+            class="action-link {% if open_complaints %}action-link-danger{% endif %}">
+            🚨 Manage Complaints
+            {% if open_complaints %}
+            <span class="count-badge count-badge-danger">{{ open_complaints }}</span>
+            {% endif %}
+        </a>
+    </div>
+</div>
+
+<div class="card animate-in animate-delay-2" style="margin-top:24px;">
+        <h3 class="text-muted mb-4" style="font-size:0.8rem; text-transform:uppercase; letter-spacing:0.5px; font-weight:700;">
+            Peak Booking Dates
+        </h3>
+        <div class="grid gap-sm">
+            {% for period in peak_usage_periods %}
+            <div class="metric-strip">
+                <strong>{{ period.label }}</strong>
+                <span class="text-muted">{{ period.count }} bookings</span>
+            </div>
+            {% empty %}
+                <p class="text-muted">Not enough booking history yet.</p>
+            {% endfor %}
+        </div>
+</div>
+
+<div class="card animate-in animate-delay-2" style="margin-top:24px;">
+    <h3 class="text-muted mb-4" style="font-size:0.8rem; text-transform:uppercase; letter-spacing:0.5px; font-weight:700;">
+        Area Capacity Overview
+    </h3>
+    <div class="dashboard-trend-list">
+        {% for item in area_capacity_stats %}
+        <div class="dashboard-area-metric">
+            <div class="dashboard-area-head">
+                <strong>{{ item.label }}</strong>
+                <span class="text-muted">{{ item.occupancy_rate }}% occupied</span>
+            </div>
+            <div class="dashboard-bar-track">
+                <div class="dashboard-bar-fill" style="width: {{ item.percent }}%;"></div>
+            </div>
+            <div class="dashboard-area-foot">
+                <span>Inside: {{ item.inside }}</span>
+                <span>Outside: {{ item.outside }}</span>
+                <span>Free: {{ item.free }}</span>
+                <span>Total: {{ item.total }}</span>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<section class="layout-board card animate-in animate-delay-3 dashboard-switcher" style="margin-top:24px;" id="adminLayoutExplorer"
+    data-switcher data-default-area="{{ selected_area }}" data-default-level="{{ selected_level }}">
+    <div class="layout-board-head">
+        <div>
+            <span class="section-kicker">Area Layout</span>
+            <h3>{{ selected_area }} • {{ selected_level_label }}</h3>
+            <p>Inspect availability by basement instead of seeing every area mixed together.</p>
+        </div>
+    </div>
+
+    <div class="layout-control-bar">
+        {% if not admin_scope_area %}
+        <div class="mini-area-tabs">
+            {% for area in area_options %}
+            <button type="button"
+                class="mini-area-tab {% if area == selected_area %}active{% endif %}"
+                data-area-target="{{ area }}">{{ area }}</button>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="scope-pill">Scoped to {{ admin_scope_area }}</div>
+        {% endif %}
+        <div class="mini-level-tabs">
+            {% for basement in basement_summaries %}
+            <button type="button"
+                class="mini-level-tab {% if basement.value == selected_level %}active{% endif %}"
+                data-level-target="{{ basement.value }}"
+                data-free-counts="{{ basement.free_counts_text }}">
+                {{ basement.label }}
+                <small data-free-label>{{ basement.free_slots }} free</small>
+            </button>
+            {% endfor %}
+        </div>
+    </div>
+
+    {% for area_panel in slot_panels %}
+        {% for level_panel in area_panel.levels %}
+        <div class="switcher-panel {% if area_panel.area == selected_area and level_panel.value == selected_level %}active{% endif %}"
+            data-area-panel="{{ area_panel.area }}" data-level-panel="{{ level_panel.value }}"
+            data-level-label="{{ level_panel.label }}">
+            {% if level_panel.slots %}
+            <div class="dashboard-layout-shell admin-shell">
+                <div class="dashboard-layout-lane">Operations Lane</div>
+                <div class="parking-bay-map dashboard-bay-map">
+                    {% for slot in level_panel.slots %}
+                    <div class="parking-bay dashboard-bay {% if not slot.is_active %}occupied bay-disabled{% elif slot.dashboard_presence == 'Inside' or slot.dashboard_presence == 'Outside' %}occupied{% else %}free{% endif %}"
+                        data-slot-id="{{ slot.id }}">
+                        <span class="bay-roof"></span>
+                        <span class="bay-car-shape"></span>
+                        <span class="bay-number">{{ slot.slot_number }}</span>
+                        <span class="bay-status">
+                            {% if not slot.is_active %}
+                            Disabled
+                            {% elif slot.dashboard_presence == 'Inside' %}
+                            Inside
+                            {% elif slot.dashboard_presence == 'Outside' %}
+                            Outside
+                            {% else %}
+                            Free
+                            {% endif %}
+                        </span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% else %}
+            <p class="text-muted" style="font-size:0.9rem; padding:16px 0;">No slots found for this area and basement.</p>
+            {% endif %}
+        </div>
+        {% endfor %}
+    {% endfor %}
+</section>
+{% endblock %}

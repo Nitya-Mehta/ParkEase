@@ -1,0 +1,33 @@
+ParkEase Users List
+===================
+Note: Django hashes passwords securely, so original passwords cannot be recovered from the database.
+The passwords listed below are the ones known from our testing sessions.
+
+Username: admin
+Email: admin@example.com (or unspecified)
+Role: Admin
+Password: admin_password123
+----------------------------------------
+
+Username: john_doe
+Email: john@example.com
+Role: User
+Password: user_password123
+----------------------------------------
+
+Username: johnson_user
+Email: johnson@example.com
+Role: User
+Password: user_password123
+----------------------------------------
+paldiAdmin
+
+env\scripts\activate
+python manage.py runserver
+
+Visa	4100 2800 0000 1007
+Mastercard	5500 6700 0000 1002
+RuPay	6527 6589 0000 1005
+Diners	3608 280009 1007
+Amex	3402 560004 01007
+https://razorpay.com/docs/payments/payments/test-card-details/?utm_source=google&utm_medium=PMax&utm_campaign=RPHQL-RPPerf-Google-Pmax-Prospect-AllDevices-Competitor_keyeword-261225&utm_adgroup=&utm_content=&utm_term=&utm_gclid=&utm_campaignID=&utm_adgroupID=&utm_adID=&utm_network=&utm_device=&gad_source=1&gad_campaignid=23400237524&gbraid=0AAAAADdXWPoD9eve3oz7QT-7uwZxDTzr0&gclid=Cj0KCQjwiJvQBhCYARIsAMjts3IgO_QfMuStWc-aOx8R57_aZHQxq5Po56n4ckR_ehmtNJR9LqCZFMwaAsw8EALw_wcB

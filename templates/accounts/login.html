@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block title %} | Login{% endblock %}
+
+{% block content %}
+<div class="auth-container animate-in">
+    <div class="card auth-card">
+        <h2>Welcome Back</h2>
+        <p class="auth-subtitle">Sign in to access your parking dashboard</p>
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="{{ form.username.id_for_label }}">Username</label>
+                {{ form.username }}
+            </div>
+            <div class="form-group">
+                <label for="{{ form.password.id_for_label }}">Password</label>
+                {{ form.password }}
+            </div>
+            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 8px;">Sign In</button>
+        </form>
+        <p class="auth-footer">
+            Don't have an account? <a href="{% url 'register' %}">Create one</a>
+        </p>
+    </div>
+</div>
+{% endblock %}

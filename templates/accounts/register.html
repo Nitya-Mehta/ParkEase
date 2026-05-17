@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block title %} | Register{% endblock %}
+
+{% block content %}
+<div class="auth-container animate-in">
+    <div class="card auth-card">
+        <h2>Create Account</h2>
+        <p class="auth-subtitle">Join ParkEase and start managing your parking</p>
+        <form method="post">
+            {% csrf_token %}
+            {{ form.non_field_errors }}
+            {% for field in form %}
+            <div class="form-group">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.help_text %}
+                <ul>
+                    <li>{{ field.help_text }}</li>
+                </ul>
+                {% endif %}
+                {% if field.errors %}
+                <div style="color: var(--error-red); font-size: 0.82rem; margin-top: 4px; font-weight: 500;">
+                    {% for error in field.errors %}
+                    {{ error }}
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 8px;">Create Account</button>
+        </form>
+        <p class="auth-footer">
+            Already have an account? <a href="{% url 'login' %}">Sign in</a>
+        </p>
+    </div>
+</div>
+{% endblock %}

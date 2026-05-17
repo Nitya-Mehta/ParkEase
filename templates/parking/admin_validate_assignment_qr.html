@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block title %} | QR Validation{% endblock %}
+
+{% block content %}
+<div class="page-header animate-in">
+    <h2>Parking QR Validation</h2>
+    <p>Verify whether the scanned parking assignment is still active.</p>
+</div>
+
+<div class="card animate-in animate-delay-1" style="max-width:720px; margin:0 auto;">
+    {% if is_valid and assignment %}
+    <span class="badge badge-green" style="margin-bottom:14px;">Valid</span>
+    <h3 style="margin-bottom:8px;">Assignment is active</h3>
+    <p class="text-muted" style="margin-bottom:18px;">This QR belongs to a currently assigned parking slot.</p>
+    <div class="grid grid-2">
+        <div class="card" style="padding:18px;">
+            <div class="text-muted" style="font-size:0.78rem;">User</div>
+            <div class="font-bold">{{ assignment.user.username }}</div>
+        </div>
+        <div class="card" style="padding:18px;">
+            <div class="text-muted" style="font-size:0.78rem;">Slot</div>
+            <div class="font-bold">{{ assignment.slot.slot_number }}</div>
+        </div>
+        <div class="card" style="padding:18px;">
+            <div class="text-muted" style="font-size:0.78rem;">Location</div>
+            <div class="font-bold">{{ assignment.slot.full_location }}</div>
+        </div>
+        <div class="card" style="padding:18px;">
+            <div class="text-muted" style="font-size:0.78rem;">Status</div>
+            <div class="font-bold">{{ assignment.status }}</div>
+        </div>
+    </div>
+    {% else %}
+    <span class="badge badge-red" style="margin-bottom:14px;">Invalid</span>
+    <h3 style="margin-bottom:8px;">Assignment could not be verified</h3>
+    <p class="text-muted">This QR is invalid, expired, or belongs to a slot that is no longer active.</p>
+    {% endif %}
+</div>
+{% endblock %}

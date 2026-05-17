@@ -1,0 +1,165 @@
+{% extends 'base.html' %}
+{% block title %} | Request Status{% endblock %}
+
+{% block content %}
+<div class="page-header-row animate-in">
+    <div>
+        <h2 style="font-size:1.8rem; font-weight:800;">My Parking Requests</h2>
+        <p class="text-muted" style="margin-top:4px;">Track the status of your parking requests and recurring auto-book rules</p>
+    </div>
+    <a href="{% url 'submit_parking_request' %}" class="btn btn-primary">+ New Request</a>
+</div>
+
+<div class="card animate-in animate-delay-1" style="margin-bottom:18px;">
+    <div class="text-muted" style="font-size:0.8rem; text-transform:uppercase; letter-spacing:0.08em;">Current Pass</div>
+    <div style="font-size:1.4rem; font-weight:800; margin-top:6px;">{{ request.user.parking_pass_label }}</div>
+    <div class="text-muted" style="margin-top:6px;">Free users can book 3 days ahead. Pro unlocks auto-booking. Premium adds VIP access and admin priority.</div>
+</div>
+
+<div class="card animate-in animate-delay-2" style="margin-bottom:18px;">
+    <div class="page-header-row" style="margin-bottom:14px;">
+        <div>
+            <h3 style="font-size:1.15rem; font-weight:800;">Recurring Auto-Booking</h3>
+            <p class="text-muted" style="margin-top:4px;">Your saved repeat rules for future date-based booking.</p>
+        </div>
+    </div>
+    <div style="overflow-x: auto;">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Slot</th>
+                    <th>Vehicle</th>
+                    <th>Days</th>
+                    <th>Range</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for rule in auto_booking_rules %}
+                <tr>
+                    <td>
+                        <div class="font-bold">{{ rule.requested_slot.slot_number }}</div>
+                        <div class="text-muted" style="font-size:0.8rem;">{{ rule.requested_slot.full_location }}</div>
+                    </td>
+                    <td>{{ rule.vehicle_plate_number }}</td>
+                    <td>{{ rule.weekday_labels|join:", " }}</td>
+                    <td>{{ rule.start_date|date:"M d, Y" }} to {{ rule.end_date|date:"M d, Y" }}</td>
+                    <td>
+                        {% if rule.is_active %}
+                        <span class="badge badge-green">Active</span>
+                        {% else %}
+                        <span class="badge badge-muted">Paused</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <form action="{% url 'toggle_auto_booking_rule' rule.id %}" method="post" style="display:inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-secondary" style="padding:6px 14px; font-size:0.78rem;">{% if rule.is_active %}Pause{% else %}Resume{% endif %}</button>
+                        </form>
+                        <form action="{% url 'delete_auto_booking_rule' rule.id %}" method="post" style="display:inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger" style="padding:6px 14px; font-size:0.78rem;">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center text-muted" style="padding:24px;">No recurring auto-book rules yet.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card animate-in animate-delay-3">
+    <div style="overflow-x: auto;">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Requested Spot</th>
+                    <th>Vehicle</th>
+                    <th>Parking Date</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for req in requests %}
+                <tr>
+                    <td data-label="Date">{{ req.created_at|date:"M d, Y" }}</td>
+                    <td data-label="Requested Spot">
+                        {% if req.requested_slot %}
+                        <div class="font-bold">{{ req.requested_slot.slot_number }}</div>
+                        <div class="text-muted" style="font-size:0.8rem;">{{ req.requested_slot.full_location }}</div>
+                        {% else %}
+                        <span class="text-muted">Not specified</span>
+                        {% endif %}
+                    </td>
+                    <td data-label="Vehicle">
+                        <div class="font-bold">{{ req.vehicle_plate_number|default:"Not selected" }}</div>
+                        {% if req.is_auto_booked %}
+                        <div class="text-muted" style="font-size:0.8rem;">Auto-booked</div>
+                        {% endif %}
+                    </td>
+                    <td data-label="Booking Window">
+                        {% if req.requested_start_time %}
+                        <div class="font-bold">{{ req.requested_start_time|date:"M d, Y" }}</div>
+                        <div class="text-muted" style="font-size:0.8rem;">
+                            Reserved for this day
+                        </div>
+                        {% else %}
+                        <span class="text-muted">Date not selected</span>
+                        {% endif %}
+                    </td>
+                    <td data-label="Status">
+                        <div style="display:flex; align-items:center; justify-content:flex-end; gap:12px;">
+                            {% if req.status == 'Pending' %}
+                            <span class="badge badge-amber">{{ req.status }}</span>
+                            {% elif req.status == 'Approved' %}
+                            <span class="badge badge-green">{{ req.status }}</span>
+                            {% if active_assignment and latest_approved_req and latest_approved_req.id == req.id %}
+                            <div class="text-muted" style="font-size:0.78rem;">
+                                {% if active_assignment.effective_end_time %}
+                                Park date {{ active_assignment.effective_start_time|date:"M d, Y" }}
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                            {% else %}
+                            <span class="badge badge-red">{{ req.status }}</span>
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td data-label="Action">
+                        {% if req.status == 'Pending' %}
+                        <a href="{% url 'submit_parking_request' %}?edit_request={{ req.id }}" class="btn btn-secondary" style="padding:6px 14px; font-size:0.78rem; margin-right:8px;">
+                            Reschedule
+                        </a>
+                        <form action="{% url 'cancel_parking_request' req.id %}" method="post" style="display:inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger" style="padding:6px 14px; font-size:0.78rem;">
+                                Cancel Request
+                            </button>
+                        </form>
+                        {% elif req.status == 'Approved' %}
+                        <a href="{% url 'submit_parking_request' %}?edit_request={{ req.id }}" class="btn btn-secondary" style="padding:6px 14px; font-size:0.78rem;">
+                            Reschedule
+                        </a>
+                        {% else %}
+                        <span class="text-muted" style="font-size:0.85rem;">No action</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center text-muted" style="padding:24px;">No requests found. <a
+                            href="{% url 'submit_parking_request' %}">Submit one now.</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+{% block title %} | Assign Slot{% endblock %}
+
+{% block content %}
+<div class="page-header animate-in">
+    <h2>Assign Slot</h2>
+    <p>Assigning to <strong>{{ parking_request.user.username }}</strong> • {{ parking_request.user.parking_pass_label }}</p>
+</div>
+
+<div style="max-width:520px;">
+    <div class="card animate-in animate-delay-1">
+        {% if parking_request.requested_slot %}
+        <div style="margin-bottom:20px; padding:18px; border:1px solid var(--border); border-radius:var(--radius-md); background:var(--bg-soft);">
+            <div class="text-muted" style="font-size:0.8rem; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:8px;">
+                Requested Spot
+            </div>
+            <div style="font-size:1.3rem; font-weight:800;">{{ parking_request.requested_slot.slot_number }}</div>
+            <div class="text-muted">{{ parking_request.requested_slot.full_location }}</div>
+            {% if parking_request.requested_start_time %}
+            <div class="text-muted" style="margin-top:10px; font-size:0.86rem;">
+                Parking date: {{ parking_request.requested_start_time|date:"M d, Y" }}
+            </div>
+            {% endif %}
+            {% if parking_request.vehicle_plate_number %}
+            <div class="text-muted" style="margin-top:8px; font-size:0.86rem;">
+                Vehicle: {{ parking_request.vehicle_plate_number }}
+            </div>
+            {% endif %}
+        </div>
+        <form method="post">
+            {% csrf_token %}
+            <div style="display:flex; gap:12px; margin-top:8px;">
+                <button type="submit" class="btn btn-primary">✅ Approve Requested Spot</button>
+                <a href="{% url 'admin_pending_requests' %}" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+        {% else %}
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                <label>Select Available Slot</label>
+                <div class="text-muted" style="font-size:0.84rem; margin-top:6px; margin-bottom:12px;">
+                    Showing slots available for {{ booking_date|date:"M d, Y" }}.
+                </div>
+                <div class="parking-map-shell booking-map-shell car-seat-map">
+                    <div class="garage-drive-lane">
+                        <span>Entry</span>
+                        <strong>Selection Lane</strong>
+                        <span>Exit</span>
+                    </div>
+                    <div class="parking-bay-map">
+                        {% for slot in free_slots %}
+                        <label class="parking-bay free selectable-bay">
+                            <input type="radio" name="slot_id" value="{{ slot.id }}" required>
+                            <span class="bay-roof"></span>
+                            <span class="bay-car-shape"></span>
+                            <span class="bay-number">{{ slot.slot_number }}</span>
+                            <span class="bay-status">{{ slot.area }} • {{ slot.get_basement_level_display }}</span>
+                        </label>
+                        {% empty %}
+                        <div class="text-muted" style="padding:18px;">
+                            No slots are free for {{ booking_date|date:"M d, Y" }}.
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            <div style="display:flex; gap:12px; margin-top:8px;">
+                <button type="submit" class="btn btn-primary">✅ Confirm Assignment</button>
+                <a href="{% url 'admin_pending_requests' %}" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block title %} | Chatbot{% endblock %}
+
+{% block content %}
+<section class="chatbot-page animate-in">
+    <div class="chatbot-shell card">
+        <div class="chatbot-head">
+            <div>
+                <span class="section-kicker">ParkEase Assistant</span>
+                <h2>Ask about ParkEase or just chat normally</h2>
+                <p>I answer ParkEase website questions and normal conversation only.</p>
+            </div>
+        </div>
+
+        <div class="chatbot-suggestions">
+            {% for suggestion in suggestions %}
+            <button type="button" class="chatbot-chip" data-chat-suggestion="{{ suggestion }}">{{ suggestion }}</button>
+            {% endfor %}
+        </div>
+
+        <div class="chatbot-messages" id="chatbotMessages" aria-live="polite">
+            <div class="chatbot-message bot">
+                Hi {{ request.user.username }}. Ask me about ParkEase pages, your slot, request status, complaints, availability, or just say hello.
+            </div>
+        </div>
+
+        <form class="chatbot-form" id="chatbotForm" data-chatbot-url="{% url 'chatbot_ask' %}">
+            {% csrf_token %}
+            <input type="text" class="form-control" id="chatbotInput" name="message"
+                placeholder="Ask about ParkEase or say hello..." autocomplete="off">
+            <button type="submit" class="btn btn-primary">Ask</button>
+        </form>
+    </div>
+</section>
+{% endblock %}

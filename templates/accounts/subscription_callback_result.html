@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block title %} | Subscription Result{% endblock %}
+
+{% block content %}
+<div style="max-width:640px; margin:0 auto;">
+    <div class="card animate-in">
+        <div class="scan-status-card {% if success %}scan-status-authorized{% else %}scan-status-no_booking{% endif %}" style="margin-bottom:18px;">
+            <div>
+                <strong>{{ title }}</strong>
+                <div class="text-muted" style="font-size:0.9rem; margin-top:6px;">{{ message }}</div>
+            </div>
+        </div>
+        {% if return_url %}
+        <a href="{{ return_url }}" class="btn btn-primary">{{ return_label|default:"Open ParkEase" }}</a>
+        {% elif request.user.is_authenticated %}
+        <a href="{% url 'subscriptions' %}" class="btn btn-primary">{{ return_label|default:"Back To Passes" }}</a>
+        {% else %}
+        <a href="{% url 'login' %}" class="btn btn-primary">{{ return_label|default:"Open ParkEase" }}</a>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

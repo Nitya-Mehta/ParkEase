@@ -1,0 +1,283 @@
+{% extends 'base.html' %}
+{% block title %} | Dashboard{% endblock %}
+
+{% block content %}
+<div class="page-header animate-in">
+    <h2>Welcome back, {{ request.user.username }} 👋</h2>
+    <p>Here's your parking overview • {{ parking_pass_label }} • {{ saved_vehicle_count }} saved vehicle{{ saved_vehicle_count|pluralize }}</p>
+</div>
+
+<div class="grid grid-auto animate-in animate-delay-1" style="margin-bottom:24px;">
+    <div class="card stat-card card-glow">
+        <div class="stat-value">{{ user_total_requests }}</div>
+        <div class="stat-label">Total Requests</div>
+    </div>
+    <div class="card stat-card card-glow">
+        <div class="stat-value text-green">{{ user_total_assignments }}</div>
+        <div class="stat-label">Assignments</div>
+    </div>
+    <div class="card stat-card card-glow">
+        <div class="stat-value text-amber">{{ user_open_complaints }}</div>
+        <div class="stat-label">Open Complaints</div>
+    </div>
+    <div class="card stat-card card-glow">
+        <div class="stat-value">{{ user_resolved_complaints }}</div>
+        <div class="stat-label">Resolved Complaints</div>
+    </div>
+</div>
+
+<div class="grid grid-2">
+    <!-- Parking Status Card -->
+    <div class="card card-glow animate-in animate-delay-1">
+        <h3 class="text-muted mb-4"
+            style="font-size:0.8rem; text-transform:uppercase; letter-spacing:0.5px; font-weight:700;">
+            Parking Status
+        </h3>
+        {% if assignment %}
+        <div style="display:flex; align-items:center; gap:20px;">
+            <div style="flex-shrink:0;">
+                <svg class="car-icon" viewBox="0 0 60 40" style="width:64px; height:44px; color:var(--green-dark);">
+                    <rect x="10" y="8" width="40" height="24" rx="8" fill="currentColor" opacity="0.15" />
+                    <rect x="14" y="12" width="32" height="16" rx="5" fill="currentColor" />
+                    <circle cx="22" cy="32" r="4" fill="currentColor" opacity="0.4" />
+                    <circle cx="38" cy="32" r="4" fill="currentColor" opacity="0.4" />
+                    <rect x="20" y="15" width="20" height="8" rx="2" fill="white" opacity="0.3" />
+                </svg>
+            </div>
+            <div>
+                <!-- prettier-ignore -->
+                <div style="font-size:1.8rem; font-weight:800; color:var(--green-dark);">
+                    Slot {{ assignment.slot.slot_number }}
+                </div>
+                <p style="color:var(--muted); margin-top:4px;">📍 {{ assignment.slot.full_location }}</p>
+                <p class="text-muted" style="font-size:0.83rem; margin-top:2px;">
+                    Since <span class="font-bold">{{ assignment.assigned_at|date:"M d, Y" }}</span>
+                </p>
+                <p class="text-muted" style="font-size:0.83rem; margin-top:6px;">
+                    Parking date: <span class="font-bold">{{ assignment.effective_start_time|date:"M d, Y" }}</span>
+                </p>
+                {% if assignment.entered_at %}
+                <p class="text-muted" style="font-size:0.82rem; margin-top:6px;">
+                    Time inside: <span class="font-bold">{{ assignment.parking_duration_display }}</span>
+                </p>
+                <p class="text-muted" style="font-size:0.82rem; margin-top:6px;">
+                    Current charge: <span class="font-bold">Rs. {{ assignment.parking_fee }}</span>
+                </p>
+                {% else %}
+                <p class="text-muted" style="font-size:0.82rem; margin-top:6px;">Waiting for gate entry scan to start the parking timer.</p>
+                {% endif %}
+            </div>
+        </div>
+        <form action="{% url 'user_release_assignment' %}" method="post" class="assignment-actions-shell" style="margin-top:18px;">
+            {% csrf_token %}
+            <div class="assignment-actions-row">
+                {% if assignment_qr_image %}
+                <div class="assignment-qr-preview">
+                    <img src="{{ assignment_qr_image }}" alt="Parking validation QR" class="assignment-qr-image">
+                </div>
+                <div class="assignment-qr-copy">
+                    <div>
+                        <div class="font-bold" style="margin-bottom:4px;">Validation QR</div>
+                        <div class="text-muted" style="font-size:0.82rem;">Show this at entry or security check.</div>
+                    </div>
+                </div>
+                {% endif %}
+                <div class="assignment-action-buttons">
+                    {% if assignment_maps_url %}
+                    <a href="{{ assignment_maps_url }}" target="_blank" rel="noopener" class="btn btn-primary"
+                        style="padding:8px 18px; font-size:0.82rem;">Open In Google Maps</a>
+                    {% endif %}
+                    <button type="submit" class="btn btn-secondary" style="padding:8px 18px; font-size:0.82rem;">
+                        Leave Slot
+                    </button>
+                </div>
+            </div>
+        </form>
+        {% elif pending_request %}
+        <div style="display:flex; align-items:center; gap:16px;">
+            <div
+                style="width:48px; height:48px; border-radius:12px; background:var(--amber-dim); display:flex; align-items:center; justify-content:center; font-size:1.4rem;">
+                ⏳</div>
+            <div>
+                <div style="font-size:1.4rem; font-weight:800; color:var(--amber);">Pending</div>
+                <p class="text-muted" style="margin-top:4px;">
+                    Your request{% if pending_request.requested_slot %} for {{ pending_request.requested_slot.slot_number }} in {{ pending_request.requested_slot.full_location }}{% endif %} is being reviewed.
+                </p>
+                {% if pending_request.requested_start_time %}
+                <p class="text-muted" style="font-size:0.82rem; margin-top:6px;">
+                    Requested for {{ pending_request.requested_start_time|date:"M d, Y" }}.
+                </p>
+                {% endif %}
+            </div>
+        </div>
+        <form action="{% url 'cancel_parking_request' pending_request.id %}" method="post" style="margin-top:18px;">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger" style="padding:8px 18px; font-size:0.82rem;">
+                Cancel Pending Request
+            </button>
+            
+        </form>
+        {% else %}
+        <div style="display:flex; align-items:center; gap:16px;">
+            <div
+                style="width:48px; height:48px; border-radius:12px; background:var(--surface-2); display:flex; align-items:center; justify-content:center; font-size:1.4rem;">
+                🅿️</div>
+            <div>
+                <div style="font-size:1.4rem; font-weight:700; color:var(--muted);">No Slot</div>
+                <p class="text-muted" style="margin-top:4px;">You don't have an assignment yet.</p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Quick Actions Card -->
+    <div class="card animate-in animate-delay-2">
+        <h3 class="text-muted mb-4"
+            style="font-size:0.8rem; text-transform:uppercase; letter-spacing:0.5px; font-weight:700;">
+            Quick Actions
+        </h3>
+        <div class="flex flex-col gap-sm">
+            {% if not assignment and not pending_request %}
+            <a href="{% url 'submit_parking_request' %}" class="action-link action-link-highlight">🅿️ Choose Parking
+                Spot</a>
+            {% else %}
+            <span class="action-link" style="opacity:0.4; cursor:not-allowed;">🅿️ Choose Parking Spot</span>
+            {% endif %}
+
+            {% if assignment %}
+            <a href="{% url 'raise_complaint' %}" class="action-link action-link-danger">🚨 Raise a Complaint</a>
+            {% endif %}
+
+            <a href="{% url 'request_status' %}" class="action-link">📋 View Request History</a>
+            <a href="{% url 'user_complaint_status' %}" class="action-link">📝 My Complaints</a>
+        </div>
+    </div>
+</div>
+
+<div class="grid grid-2 animate-in animate-delay-2" style="margin-top:24px;">
+    <div class="card">
+        <h3 class="text-muted mb-4" style="font-size:0.8rem; text-transform:uppercase; letter-spacing:0.5px; font-weight:700;">
+            Request Status Snapshot
+        </h3>
+        <div class="grid gap-sm">
+            {% for item in user_request_status_stats %}
+            <div class="metric-strip">
+                <strong>{{ item.label }}</strong>
+                <span class="text-muted">{{ item.value }}</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="card">
+        <h3 class="text-muted mb-4" style="font-size:0.8rem; text-transform:uppercase; letter-spacing:0.5px; font-weight:700;">
+            Most Used Parking Areas
+        </h3>
+        <div class="dashboard-trend-list">
+            {% for item in user_area_history_stats %}
+            <div class="dashboard-trend-row">
+                <strong>{{ item.label }}</strong>
+                <div class="dashboard-bar-track">
+                    <div class="dashboard-bar-fill" style="width: {{ item.percent }}%;"></div>
+                </div>
+                <span>{{ item.value }} visits</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<section class="layout-board card animate-in animate-delay-3 dashboard-switcher" style="margin-top:24px;" id="layoutExplorer"
+    data-switcher data-default-area="{{ selected_area }}" data-default-level="{{ selected_level }}"
+    data-live-slots data-live-url="{% url 'live_slot_status' %}"
+    data-owned-slot-id="{% if assignment %}{{ assignment.slot.id }}{% endif %}"
+    data-requested-slot-id="{% if pending_request and pending_request.requested_slot %}{{ pending_request.requested_slot.id }}{% endif %}">
+    <div class="layout-board-head">
+        <div>
+            <span class="section-kicker">Availability Snapshot</span>
+            <h3>{{ selected_area }} • {{ selected_level_label }}</h3>
+            {% if assignment %}
+            <p>Your assigned bay is highlighted so you can quickly check its deck and nearby availability.</p>
+            {% elif pending_request %}
+            <p>Your requested bay stays visible while the admin reviews it.</p>
+            {% else %}
+            <p>Preview live availability, then open the booking view to select an exact bay.</p>
+            {% endif %}
+        </div>
+        <a href="{% url 'submit_parking_request' %}?area={{ selected_area }}&level={{ selected_level }}"
+            class="btn btn-primary" data-booking-link>Open Booking View</a>
+    </div>
+
+    <div class="layout-control-bar">
+        <div class="mini-area-tabs">
+            {% for area in area_options %}
+            <button type="button"
+                class="mini-area-tab {% if area == selected_area %}active{% endif %}"
+                data-area-target="{{ area }}">{{ area }}</button>
+            {% endfor %}
+        </div>
+        <div class="mini-level-tabs">
+            {% for basement in basement_summaries %}
+            <button type="button"
+                class="mini-level-tab {% if basement.value == selected_level %}active{% endif %}"
+                data-level-target="{{ basement.value }}"
+                data-free-counts="{{ basement.free_counts_text }}">
+                {{ basement.label }}
+                <small data-free-label>{{ basement.free_slots }} free</small>
+            </button>
+            {% endfor %}
+        </div>
+    </div>
+
+    {% for area_panel in slot_panels %}
+        {% for level_panel in area_panel.levels %}
+        <div class="switcher-panel {% if area_panel.area == selected_area and level_panel.value == selected_level %}active{% endif %}"
+            data-area-panel="{{ area_panel.area }}" data-level-panel="{{ level_panel.value }}"
+            data-level-label="{{ level_panel.label }}">
+            {% if level_panel.slots %}
+            <div class="dashboard-layout-shell compact-garage-preview">
+                <div class="dashboard-layout-lane">Deck Preview</div>
+                <div class="parking-bay-map dashboard-bay-map">
+                    {% for slot in level_panel.slots %}
+                    {% if not assignment and not pending_request and slot.is_active and slot.status != 'Assigned' %}
+                    <a
+                        href="{% url 'submit_parking_request' %}?area={{ area_panel.area }}&level={{ level_panel.value }}&slot={{ slot.id }}&booking_date={% now 'Y-m-d' %}"
+                        class="parking-bay dashboard-bay free dashboard-bay-link{% if assignment and slot.id == assignment.slot.id %} bay-mine{% endif %}{% if pending_request and pending_request.requested_slot and slot.id == pending_request.requested_slot.id %} bay-requested{% endif %}"
+                        data-slot-id="{{ slot.id }}">
+                    {% else %}
+                    <div
+                        class="parking-bay dashboard-bay {% if not slot.is_active %}occupied bay-disabled{% elif slot.status == 'Assigned' %}occupied{% else %}free{% endif %}{% if assignment and slot.id == assignment.slot.id %} bay-mine{% endif %}{% if pending_request and pending_request.requested_slot and slot.id == pending_request.requested_slot.id %} bay-requested{% endif %}"
+                        data-slot-id="{{ slot.id }}">
+                    {% endif %}
+                        <span class="bay-roof"></span>
+                        <span class="bay-car-shape"></span>
+                        <span class="bay-number">{{ slot.slot_number }}</span>
+                        <span class="bay-status">
+                            {% if not slot.is_active %}
+                            Disabled
+                            {% elif assignment and slot.id == assignment.slot.id %}
+                            Your Spot
+                            {% elif pending_request and pending_request.requested_slot and slot.id == pending_request.requested_slot.id %}
+                            Requested
+                            {% elif slot.status == 'Assigned' %}
+                            Occupied
+                            {% else %}
+                            Available
+                            {% endif %}
+                        </span>
+                    {% if not assignment and not pending_request and slot.is_active and slot.status != 'Assigned' %}
+                    </a>
+                    {% else %}
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+            {% else %}
+            <p class="text-muted" style="font-size:0.9rem; padding:16px 0;">No parking slots found for this area and basement.</p>
+            {% endif %}
+        </div>
+        {% endfor %}
+    {% endfor %}
+</section>
+{% endblock %}

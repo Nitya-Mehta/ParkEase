@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block title %} | {% if form.instance.pk %}Edit{% else %}New{% endif %} Slot{% endblock %}
+
+{% block content %}
+<div class="page-header animate-in">
+    <h2>{% if form.instance.pk %}Edit Slot{% else %}Create New Slot{% endif %}</h2>
+</div>
+
+<div style="max-width:520px;">
+    <div class="card animate-in animate-delay-1">
+        <form method="post">
+            {% csrf_token %}
+            {% for field in form %}
+            <div class="form-group">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.errors %}
+                <div style="color:var(--error-red); font-size:0.82rem; margin-top:4px;">{{ field.errors }}</div>
+                {% endif %}
+            </div>
+            {% endfor %}
+            <div style="display:flex; gap:12px; margin-top:8px;">
+                <button type="submit" class="btn btn-primary">💾 Save Slot</button>
+                <a href="{% url 'admin_slot_list' %}" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

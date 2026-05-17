@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+{% block title %} | {{ plan.name }} Checkout{% endblock %}
+{% block extra_head %}
+<style>
+  .subscription-checkout-shell { display:grid; grid-template-columns:minmax(0,1.2fr) minmax(320px,0.8fr); gap:24px; align-items:start; }
+  .subscription-checkout-copy { padding:28px; border-radius:28px; background:linear-gradient(135deg, #fff, #eef2fb); border:1px solid var(--border); box-shadow:var(--sh-sm); }
+  .subscription-checkout-copy p { margin-top:10px; color:var(--muted); max-width:58ch; }
+  .subscription-checkout-price { margin:18px 0; font-size:2rem; font-weight:800; color:var(--ink); }
+  .subscription-checkout-card { position:sticky; top:96px; }
+  .subscription-detail-list { display:grid; gap:10px; }
+  .subscription-detail-list div { display:flex; justify-content:space-between; gap:12px; padding:10px 12px; border:1px solid var(--border); border-radius:12px; background:rgba(255,255,255,0.7); }
+  @media (max-width: 980px) { .subscription-checkout-shell { grid-template-columns:1fr; } .subscription-checkout-card { position:static; } }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="subscription-checkout-shell animate-in">
+    <div class="subscription-checkout-copy">
+        <span class="section-kicker">Pass Checkout</span>
+        <h1>{{ plan.name }}</h1>
+        <p>{{ plan.tagline }}</p>
+        <div class="subscription-checkout-price">{{ plan.monthly_label }}</div>
+        <div class="subscription-detail-list">
+            <div><strong>Booking Window</strong><span>{{ plan.booking_window }}</span></div>
+            <div><strong>Parking Discount</strong><span>{{ plan.discount }}</span></div>
+            <div><strong>Admin Queue</strong><span>{{ plan.admin_priority }}</span></div>
+            <div><strong>VIP Access</strong><span>{{ plan.vip_access }}</span></div>
+        </div>
+    </div>
+
+    <div class="card subscription-checkout-card animate-in animate-delay-1">
+        {% if payment_done %}
+        <div class="scan-status-card scan-status-authorized" style="margin-bottom:18px;">
+            <div>
+                <strong>Upgrade Complete</strong>
+                <div class="text-muted" style="font-size:0.82rem;">Your account is now on {{ plan.name }}.</div>
+            </div>
+        </div>
+        <a href="{% url 'subscriptions' %}" class="btn btn-primary" style="width:100%;">Back To Passes</a>
+        {% elif gateway_ready %}
+        <div class="scan-status-card scan-status-authorized" style="margin-bottom:18px;">
+            <div>
+                <strong>Razorpay Ready</strong>
+                <div class="text-muted" style="font-size:0.82rem;">The Razorpay test checkout will open automatically. Complete the test flow to activate this pass.</div>
+            </div>
+        </div>
+        <div style="display:grid; gap:12px;">
+            <button type="button" class="btn btn-primary" id="subscriptionPayButton">Pay For {{ plan.name }}</button>
+            <a href="{% url 'subscriptions' %}" class="btn btn-secondary">Back To Comparison</a>
+        </div>
+        {% else %}
+        <div class="scan-status-card scan-status-no_booking" style="margin-bottom:18px;">
+            <div>
+                <strong>Razorpay Setup Needed</strong>
+                <div class="text-muted" style="font-size:0.82rem;">Add `RAZORPAY_KEY_ID` and `RAZORPAY_KEY_SECRET` in `.env`, then reload this page.</div>
+            </div>
+        </div>
+        <a href="{% url 'subscriptions' %}" class="btn btn-secondary" style="width:100%;">Back To Passes</a>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+{% if gateway_ready and not payment_done %}
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+    (function () {
+        const payButton = document.getElementById('subscriptionPayButton');
+        if (!payButton || typeof Razorpay === 'undefined') {
+            return;
+        }
+        const callbackUrl = '{{ razorpay_callback_url|escapejs }}';
+
+        function redirectWithStatus(status, reason) {
+            const url = new URL(callbackUrl, window.location.origin);
+            url.searchParams.set('status', status);
+            if (reason) {
+                url.searchParams.set('reason', reason);
+            }
+            window.location.href = url.toString();
+        }
+
+        const options = {
+            key: '{{ razorpay_key_id|escapejs }}',
+            amount: '{{ checkout_state.amount_paise }}',
+            currency: '{{ checkout_state.currency|default:"INR"|escapejs }}',
+            name: '{{ razorpay_company_name|escapejs }}',
+            description: '{{ plan.name|escapejs }} upgrade for {{ request.user.username|escapejs }}',
+            order_id: '{{ checkout_state.order_id|escapejs }}',
+            callback_url: callbackUrl,
+            redirect: true,
+            modal: {
+                ondismiss: function () {
+                    redirectWithStatus('cancelled');
+                }
+            },
+            prefill: {
+                name: '{{ request.user.get_full_name|default:request.user.username|escapejs }}',
+                email: '{{ request.user.email|default:""|escapejs }}',
+                contact: '{{ request.user.mobile_number|default:""|escapejs }}'
+            },
+            notes: {
+                plan_code: '{{ plan_code|escapejs }}',
+                username: '{{ request.user.username|escapejs }}'
+            },
+            theme: {
+                color: '#2b396d'
+            }
+        };
+
+        const razorpay = new Razorpay(options);
+        razorpay.on('payment.failed', function (response) {
+            const error = response && response.error ? response.error : {};
+            redirectWithStatus('failed', error.description || error.reason || error.code || 'Razorpay reported that the payment failed.');
+        });
+        payButton.addEventListener('click', function () {
+            payButton.disabled = true;
+            razorpay.open();
+        });
+        window.addEventListener('load', function () {
+            payButton.click();
+        }, { once: true });
+    }());
+</script>
+{% endif %}
+{% endblock %}

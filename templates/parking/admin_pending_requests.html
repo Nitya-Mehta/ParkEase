@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% block title %} | Pending Requests{% endblock %}
+
+{% block content %}
+<div class="page-header animate-in">
+    <h2>Pending Requests</h2>
+    <p>Review and assign parking slots to users</p>
+</div>
+
+<div class="card animate-in animate-delay-1">
+    <div style="overflow-x: auto;">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Pass</th>
+                    <th>Requested Slot</th>
+                    <th>Vehicle</th>
+                    <th>Parking Date</th>
+                    <th>Date</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for req in requests %}
+                <tr class="{% if req.user.parking_pass == 'Premium' %}premium-request-row{% elif req.user.parking_pass == 'Pro' %}pro-request-row{% endif %}">
+                    <td class="font-bold">{{ req.user.username }}</td>
+                    <td>
+                        {% if req.user.parking_pass == 'Premium' %}
+                        <span class="badge badge-green">Premium</span>
+                        {% elif req.user.parking_pass == 'Pro' %}
+                        <span class="badge badge-amber">Pro</span>
+                        {% else %}
+                        <span class="badge badge-muted">Free</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if req.requested_slot %}
+                        <div class="font-bold">{{ req.requested_slot.slot_number }}</div>
+                        <div class="text-muted" style="font-size:0.8rem;">{{ req.requested_slot.full_location }}{% if req.requested_slot.is_vip %} • VIP{% endif %}</div>
+                        {% else %}
+                        <span class="text-muted">Legacy request</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="font-bold">{{ req.vehicle_plate_number|default:"Not selected" }}</div>
+                        {% if req.is_auto_booked %}
+                        <div class="text-muted" style="font-size:0.8rem;">Auto-booked</div>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if req.requested_start_time %}
+                        <div class="font-bold">{{ req.requested_start_time|date:"M d, Y" }}</div>
+                        <div class="text-muted" style="font-size:0.8rem;">Reserved for this day</div>
+                        {% else %}
+                        <span class="text-muted">Date not set</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ req.created_at|date:"M d, Y" }}</td>
+                    <td>
+                        <a href="{% url 'admin_assign_slot' req.id %}" class="btn btn-primary"
+                            style="padding:6px 18px; font-size:0.82rem;">Assign Slot</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center text-muted" style="padding:24px;">No pending requests. 🎉</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
